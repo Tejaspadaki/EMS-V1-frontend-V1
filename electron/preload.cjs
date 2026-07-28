@@ -3,12 +3,20 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   // Deep link callback subscription
   onDeepLink: (callback) => {
-    ipcRenderer.on('open-deep-link', (_event, value) => callback(value));
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('open-deep-link', listener);
+    return () => {
+      ipcRenderer.removeListener('open-deep-link', listener);
+    };
   },
   
   // Native navigation listener
   onNavigate: (callback) => {
-    ipcRenderer.on('navigate', (_event, value) => callback(value));
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('navigate', listener);
+    return () => {
+      ipcRenderer.removeListener('navigate', listener);
+    };
   },
   
   // Dialog operations

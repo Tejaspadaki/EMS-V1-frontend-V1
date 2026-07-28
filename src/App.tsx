@@ -16,6 +16,8 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage').then(m => ({ defau
 const TwoFactorPage = lazy(() => import('./pages/auth/TwoFactorPage').then(m => ({ default: m.TwoFactorPage })));
 const AccountLockedPage = lazy(() => import('./pages/auth/AccountLockedPage').then(m => ({ default: m.AccountLockedPage })));
 const ChangePasswordPage = lazy(() => import('./pages/auth/ChangePasswordPage').then(m => ({ default: m.ChangePasswordPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
 
 const UnauthorizedPlaceholder = lazy(() => import('./pages/Placeholders').then(m => ({ default: m.UnauthorizedPlaceholder })));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })));
@@ -87,8 +89,8 @@ const SubmitDocumentsPage = lazy(() => import('./pages/hr/SubmitDocumentsPage').
 declare global {
   interface Window {
     electronAPI?: {
-      onDeepLink: (callback: (url: string) => void) => void;
-      onNavigate?: (callback: (path: string) => void) => void;
+      onDeepLink: (callback: (url: string) => void) => (() => void) | void;
+      onNavigate?: (callback: (path: string) => void) => (() => void) | void;
     };
   }
 }
@@ -97,10 +99,12 @@ function DeepLinkListener() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let cleanupDeepLink: (() => void) | void;
+    let cleanupNavigate: (() => void) | void;
+
     if (window.electronAPI && typeof window.electronAPI.onDeepLink === 'function') {
-      window.electronAPI.onDeepLink((url: string) => {
+      cleanupDeepLink = window.electronAPI.onDeepLink((url: string) => {
         console.log('[DEEP_LINK] Received deep link:', url);
-        // Match structure like ems://meeting/xyz or ems:////meeting/xyz
         const match = url.match(/ems:\/\/*meeting\/([a-zA-Z0-9]+)/);
         if (match && match[1]) {
           navigate(`/meeting/${match[1]}`);
@@ -109,11 +113,16 @@ function DeepLinkListener() {
     }
 
     if (window.electronAPI && typeof window.electronAPI.onNavigate === 'function') {
-      window.electronAPI.onNavigate((path: string) => {
+      cleanupNavigate = window.electronAPI.onNavigate((path: string) => {
         console.log('[ELECTRON_NAVIGATE] Received navigation event to:', path);
         navigate(path);
       });
     }
+
+    return () => {
+      if (typeof cleanupDeepLink === 'function') cleanupDeepLink();
+      if (typeof cleanupNavigate === 'function') cleanupNavigate();
+    };
   }, [navigate]);
 
   return null;
@@ -160,6 +169,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/2fa" element={<TwoFactorPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/locked" element={<AccountLockedPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPlaceholder />} />
 
@@ -259,7 +270,7 @@ function App() {
                   <Route path="/hr/attendance-audit" element={<AttendanceAuditPage />} />
                   <Route path="/hr/attendance-dashboard" element={<AttendanceDashboardPage />} />
                   <Route path="/hr/documents/:userId" element={<SubmitDocumentsPage />} />
-                  <Route path="/hr/dashboard" element={<HRDashboard />} />
+                  <Route path="/hr/dashboard" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/hr/payroll" element={<PayrollDashboard />} />
                   <Route path="/hr/exits" element={<ExitManagement />} />
                 </Route>

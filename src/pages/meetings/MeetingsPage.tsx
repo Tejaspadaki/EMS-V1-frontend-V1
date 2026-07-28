@@ -41,6 +41,7 @@ export const MeetingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'all'>('upcoming');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [locationType, setLocationType] = useState<'inbuilt' | 'external'>('inbuilt');
   const [newMeeting, setNewMeeting] = useState({
     title: '',
     description: '',
@@ -95,12 +96,13 @@ export const MeetingsPage: React.FC = () => {
         description: newMeeting.description ? newMeeting.description.trim() : undefined,
         startTime: startDateTime,
         endTime: endDateTime,
-        meetingLink: newMeeting.meetingLink ? newMeeting.meetingLink.trim() : undefined,
+        meetingLink: locationType === 'external' && newMeeting.meetingLink ? newMeeting.meetingLink.trim() : undefined,
         participants: newMeeting.participants
       });
       setIsModalOpen(false);
       fetchData();
       setNewMeeting({ title: '', description: '', date: '', startTime: '', endTime: '', meetingLink: '', participants: [] });
+      setLocationType('inbuilt');
       toast.success('Meeting scheduled successfully!');
     } catch (error: any) {
       console.error('Failed to create meeting', error);
@@ -171,11 +173,17 @@ export const MeetingsPage: React.FC = () => {
   };
 
   const joinMeeting = (link: string) => {
-    const match = link.match(/(?:ems:\/\/|https?:\/\/[^\/]+\/?)(?:meeting|meeting\/)([a-zA-Z0-9_-]+)/);
+    if (!link) return;
+    const match = link.match(/(?:ems:\/\/|https?:\/\/[^\/]+\/?)(?:meeting|meeting\/)\/?([a-zA-Z0-9_-]+)/i);
     if (match && match[1]) {
       navigate(`/meeting/${match[1]}`);
-    } else {
+    } else if (link.includes('meeting/')) {
+      const parts = link.split('meeting/');
+      navigate(`/meeting/${parts[parts.length - 1]}`);
+    } else if (link.startsWith('http://') || link.startsWith('https://')) {
       window.open(link, '_blank');
+    } else {
+      navigate(`/meeting/${link}`);
     }
   };
 
@@ -383,10 +391,10 @@ export const MeetingsPage: React.FC = () => {
                     {meeting.meetingLink && !isCancelled && (
                       <button
                         onClick={() => joinMeeting(meeting.meetingLink!)}
-                        className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl text-xs font-bold transition-all hover:shadow-sm border border-indigo-100"
+                        className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold transition-all hover:shadow-md hover:shadow-indigo-500/20 border border-indigo-600"
                       >
                         <Video size={13} />
-                        Join
+                        {meeting.meetingLink.includes('meeting/') || meeting.meetingLink.startsWith('ems:') ? 'Join Built-In Room' : 'Join Link'}
                         <ArrowRight size={12} className="ml-auto" />
                       </button>
                     )}
@@ -527,18 +535,70 @@ export const MeetingsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Meeting Link / Location</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <Video size={15} />
-              </div>
-              <Input
-                className="pl-10"
-                value={newMeeting.meetingLink}
-                onChange={e => setNewMeeting({...newMeeting, meetingLink: e.target.value})}
-                placeholder="https://zoom.us/j/123..."
-              />
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Meeting Room / Location</label>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => setLocationType('inbuilt')}
+                className={`flex items-center gap-2.5 p-3 rounded-2xl border text-left transition-all ${
+                  locationType === 'inbuilt'
+                    ? 'bg-indigo-50/80 border-indigo-500 text-indigo-900 shadow-sm ring-1 ring-indigo-500'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${locationType === 'inbuilt' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <Video size={16} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold">EMS Built-in Room</p>
+                  <p className="text-[10px] text-slate-500">In-App Live Video Call</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLocationType('external')}
+                className={`flex items-center gap-2.5 p-3 rounded-2xl border text-left transition-all ${
+                  locationType === 'external'
+                    ? 'bg-indigo-50/80 border-indigo-500 text-indigo-900 shadow-sm ring-1 ring-indigo-500'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${locationType === 'external' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold">External Link / Custom</p>
+                  <p className="text-[10px] text-slate-500">Zoom or Physical Room</p>
+                </div>
+              </button>
             </div>
+
+            {locationType === 'inbuilt' ? (
+              <div className="p-3.5 bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 rounded-2xl flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Zap size={16} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-indigo-950">Automatic Built-In Video Room</p>
+                  <p className="text-[11px] text-indigo-700/80 font-medium">
+                    A secure EMS video call room will be created automatically. Participants can join directly inside the app with 1-click.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <Video size={15} />
+                </div>
+                <Input
+                  className="pl-10"
+                  value={newMeeting.meetingLink}
+                  onChange={e => setNewMeeting({...newMeeting, meetingLink: e.target.value})}
+                  placeholder="https://zoom.us/j/123... or Conference Room 3B"
+                />
+              </div>
+            )}
           </div>
 
           <div>

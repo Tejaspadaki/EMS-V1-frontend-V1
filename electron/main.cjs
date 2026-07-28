@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const config = require('./config/index.cjs');
 const { registerSystemIPCHandlers } = require('./ipc/system.cjs');
+const { initAutoUpdater } = require('./updater.cjs');
 
 let mainWindow;
 
@@ -62,6 +63,9 @@ function createWindow() {
       console.log(`[RENDERER CONSOLE] ${message} (from ${sourceId}:${line})`);
     });
   }
+
+  // Initialize Automatic Application Updater
+  initAutoUpdater(mainWindow);
 
   // Grant camera/mic media permissions dynamically
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {

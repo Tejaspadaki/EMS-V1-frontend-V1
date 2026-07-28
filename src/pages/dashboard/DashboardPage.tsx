@@ -1,604 +1,757 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { getDashboardData, getDepartmentDashboard } from '../../api/admin.api';
+import { getRolePermissions, hasPermission, Permission } from '../../config/dashboardConfig';
+import { getDashboardData } from '../../api/admin.api';
 import { getMyTasks } from '../../api/projects.api';
 import { getMyRequests, getApprovalQueue } from '../../api/requests.api';
-import { Users, FolderKanban, Clock, Activity, ArrowRight, UserPlus, FileText, CheckCircle, TrendingUp, BarChart3, Briefcase, Calendar } from 'lucide-react';
+import { 
+  getOpsDashboardData, getGrowthDashboardData, getProductDashboardData, 
+  getDesignDashboardData, getEngLeadDashboardData, getAILeadDashboardData, 
+  getSecurityDashboardData, getFinanceDashboardData, createSOP, logRisk, 
+  logIncident, logInternHours 
+} from '../../api/dashboard.api';
+import { 
+  Users, FolderKanban, Clock, Activity, ArrowRight, UserPlus, 
+  FileText, CheckCircle, TrendingUp, BarChart3, Briefcase, Calendar, 
+  Shield, Zap, Sparkles, Plus, Target, Cpu, Layers, Lock, 
+  DollarSign, BookOpen, AlertTriangle
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SuperAdminDashboardPage } from '../admin/SuperAdminDashboardPage';
 import { Button } from '../../components/ui/Button';
 import { OnboardingDashboard } from './OnboardingDashboard';
-import { DeptHeadDashboard } from './DeptHeadDashboard';
-import { CEODashboard } from './CEODashboard';
-import { CTODashboard } from './CTODashboard';
-import { InternDashboard } from './InternDashboard';
-import { OperationsLeadDashboard } from './OperationsLeadDashboard';
-import { GrowthLeadDashboard } from './GrowthLeadDashboard';
-import { ProductLeadDashboard } from './ProductLeadDashboard';
-import { DesignLeadDashboard } from './DesignLeadDashboard';
-import { EngineeringLeadDashboard } from './EngineeringLeadDashboard';
-import { AILeadDashboard } from './AILeadDashboard';
-import { SecurityLeadDashboard } from './SecurityLeadDashboard';
-import { FinanceLeadDashboard } from './FinanceLeadDashboard';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import { toast } from '../../utils/toast';
 
 export const DashboardPage: React.FC = () => {
   const { user, role } = useAuthStore();
-  const [data, setData] = useState<any>(null);
-  const [deptData, setDeptData] = useState<any>(null);
-  const [employeeData, setEmployeeData] = useState<{ tasks: any[]; requests: any[]; approvals: any[] } | null>(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const isAdminOrHR = ['Super Admin', 'HR'].includes(role || '');
-  const isManager = ['Dept Head', 'Team Lead'].includes(role || '');
+  // Active permissions derived from RBAC configuration
+  const userPermissions: Permission[] = getRolePermissions(role);
 
-  if (role === 'Super Admin') {
-    return <SuperAdminDashboardPage />;
-  }
+  // Consolidated Data State
+  const [loading, setLoading] = useState(true);
+  const [adminData, setAdminData] = useState<any>(null);
+  const [employeeData, setEmployeeData] = useState<{ tasks: any[]; requests: any[]; approvals: any[] }>({
+    tasks: [],
+    requests: [],
+    approvals: []
+  });
 
-  if (role === 'CEO') {
-    return <CEODashboard />;
-  }
+  // Domain-specific module states
+  const [opsData, setOpsData] = useState<any>(null);
+  const [growthData, setGrowthData] = useState<any>(null);
+  const [productData, setProductData] = useState<any>(null);
+  const [designData, setDesignData] = useState<any>(null);
+  const [engData, setEngData] = useState<any>(null);
+  const [aiData, setAiData] = useState<any>(null);
+  const [securityData, setSecurityData] = useState<any>(null);
+  const [financeData, setFinanceData] = useState<any>(null);
 
-  if (role === 'CTO') {
-    return <CTODashboard />;
-  }
-
-  if (role === 'Operations Lead' || role === 'Operations') {
-    return <OperationsLeadDashboard />;
-  }
-
-  if (role === 'Growth Lead' || role === 'Growth' || role === 'Sales Lead') {
-    return <GrowthLeadDashboard />;
-  }
-
-  if (role === 'Product Lead' || role === 'Product') {
-    return <ProductLeadDashboard />;
-  }
-
-  if (role === 'Design Lead' || role === 'UI/UX Lead') {
-    return <DesignLeadDashboard />;
-  }
-
-  if (role === 'Engineering Lead' || role === 'Eng Lead') {
-    return <EngineeringLeadDashboard />;
-  }
-
-  if (role === 'AI Lead' || role === 'AI / ML Lead') {
-    return <AILeadDashboard />;
-  }
-
-  if (role === 'Security Lead' || role === 'Security') {
-    return <SecurityLeadDashboard />;
-  }
-
-  if (role === 'Finance Lead' || role === 'Finance') {
-    return <FinanceLeadDashboard />;
-  }
-
-  if (role === 'Intern') {
-    return <InternDashboard />;
-  }
+  // Form states for domain actions
+  const [sopTitle, setSopTitle] = useState('');
+  const [riskTitle, setRiskTitle] = useState('');
+  const [internHours, setInternHours] = useState(2);
+  const [internDesc, setInternDesc] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchUnifiedDashboardData = async () => {
+      setLoading(true);
       try {
-        if (isAdminOrHR) {
-          const res = await getDashboardData();
-          setData(res.data);
-        } else if (role === 'Dept Head') {
-          const { getDeptHeadDashboard } = await import('../../api/department.api');
-          const [tasks, requests, approvals, deptRes] = await Promise.all([
-            getMyTasks().catch(() => []),
-            getMyRequests().catch(() => []),
-            getApprovalQueue(role!).catch(() => []),
-            getDeptHeadDashboard().catch((err) => { console.error(err); return null; })
-          ]);
-          setEmployeeData({ tasks, requests, approvals });
-          setDeptData(deptRes);
-        } else {
-          const [tasks, requests, approvals] = await Promise.all([
-            getMyTasks().catch(() => []),
-            getMyRequests().catch(() => []),
-            isManager ? getApprovalQueue(role!).catch(() => []) : Promise.resolve([])
-          ]);
-          setEmployeeData({ tasks, requests, approvals });
-        }
-      } catch (err: any) {
-        if (err?.response?.status !== 401) {
-          console.error('Error fetching dashboard data:', err);
-        }
+        const promises: Promise<any>[] = [];
+
+        // 1. Personal Employee Tasks & Requests (Accessible to all authenticated users)
+        const personalTasksPromise = getMyTasks().catch(() => []);
+        const personalRequestsPromise = getMyRequests().catch(() => []);
+        const approvalQueuePromise = hasPermission(userPermissions, 'view_team_queue')
+          ? getApprovalQueue(role!).catch(() => [])
+          : Promise.resolve([]);
+
+        // 2. Admin & System Overview Metrics
+        const adminPromise = hasPermission(userPermissions, ['view_system_overview', 'view_admin_metrics', 'view_hr_module'])
+          ? getDashboardData().then(res => res.data).catch(() => null)
+          : Promise.resolve(null);
+
+        // 3. Domain Modules Data
+        const opsPromise = hasPermission(userPermissions, 'view_ops_module') ? getOpsDashboardData().catch(() => null) : Promise.resolve(null);
+        const growthPromise = hasPermission(userPermissions, 'view_growth_module') ? getGrowthDashboardData().catch(() => null) : Promise.resolve(null);
+        const productPromise = hasPermission(userPermissions, 'view_product_module') ? getProductDashboardData().catch(() => null) : Promise.resolve(null);
+        const designPromise = hasPermission(userPermissions, 'view_design_module') ? getDesignDashboardData().catch(() => null) : Promise.resolve(null);
+        const engPromise = hasPermission(userPermissions, 'view_engineering_module') ? getEngLeadDashboardData().catch(() => null) : Promise.resolve(null);
+        const aiPromise = hasPermission(userPermissions, 'view_ai_module') ? getAILeadDashboardData().catch(() => null) : Promise.resolve(null);
+        const securityPromise = hasPermission(userPermissions, 'view_security_module') ? getSecurityDashboardData().catch(() => null) : Promise.resolve(null);
+        const financePromise = hasPermission(userPermissions, 'view_finance_module') ? getFinanceDashboardData().catch(() => null) : Promise.resolve(null);
+
+        const [
+          tasks, requests, approvals, 
+          aData, oData, gData, pData, dData, eData, aiRes, sData, fData
+        ] = await Promise.all([
+          personalTasksPromise, personalRequestsPromise, approvalQueuePromise,
+          adminPromise, opsPromise, growthPromise, productPromise, designPromise, 
+          engPromise, aiPromise, securityPromise, financePromise
+        ]);
+
+        setEmployeeData({ tasks: tasks || [], requests: requests || [], approvals: approvals || [] });
+        setAdminData(aData);
+        setOpsData(oData);
+        setGrowthData(gData);
+        setProductData(pData);
+        setDesignData(dData);
+        setEngData(eData);
+        setAiData(aiRes);
+        setSecurityData(sData);
+        setFinanceData(fData);
+      } catch (err) {
+        console.error('Error fetching unified dashboard data:', err);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
-  }, [isAdminOrHR, role, isManager]);
+
+    fetchUnifiedDashboardData();
+  }, [role]);
+
+  // Handler for creating an SOP directly from Operations Widget
+  const handleCreateSOP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sopTitle.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const newSop = await createSOP({ title: sopTitle.trim(), category: 'Operations' });
+      setOpsData((prev: any) => ({ ...prev, sops: [newSop, ...(prev?.sops || [])] }));
+      setSopTitle('');
+      toast.success('SOP created successfully!');
+    } catch (e) {
+      toast.error('Failed to create SOP');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handler for logging intern hours directly from Intern Widget
+  const handleLogInternHours = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await logInternHours({ track_type: 'Project', duration_hours: internHours, description: internDesc });
+      toast.success(`Logged ${internHours} hours successfully!`);
+      setInternDesc('');
+    } catch (e) {
+      toast.error('Failed to log intern hours');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-          <span className="text-sm text-slate-500 font-medium">Loading dashboard...</span>
+      <div className="flex items-center justify-center min-h-[65vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 animate-pulse flex items-center justify-center">
+            <Sparkles className="text-white animate-spin" size={24} />
+          </div>
+          <span className="text-sm font-semibold text-slate-600">Loading unified dashboard...</span>
         </div>
       </div>
     );
   }
 
-  if (!isAdminOrHR) {
-    if (role === 'Dept Head') {
-      return <DeptHeadDashboard data={employeeData} deptData={deptData} />;
-    }
+  // Pre-calculated personal metrics
+  const activeTasks = employeeData.tasks.filter(t => t.status !== 'DONE').length;
+  const pendingRequests = employeeData.requests.filter(r => r.status === 'Pending' || r.status === 'Active').length;
+  const pendingApprovals = employeeData.approvals.length;
 
-    const activeTasks = employeeData?.tasks.filter(t => t.status !== 'DONE').length || 0;
-    const pendingRequests = employeeData?.requests.filter(r => r.status === 'Pending').length || 0;
-    const pendingApprovals = employeeData?.approvals.length || 0;
+  // PieChart Task Status Workload Data
+  const tasksList = employeeData.tasks || [];
+  const statusCounts = tasksList.reduce((acc: Record<string, number>, t: any) => {
+    const status = t.status || 'TODO';
+    const key = status === 'TODO' || status === 'To Do' ? 'To Do' :
+                status === 'IN_PROGRESS' || status === 'In Progress' ? 'In Progress' :
+                status === 'IN_REVIEW' || status === 'Review' ? 'Review' : 'Done';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
 
-    const tasks = employeeData?.tasks || [];
-    
-    // Group tasks by status for Recharts PieChart
-    const statusCounts = tasks.reduce((acc: Record<string, number>, t: any) => {
-      const status = t.status || 'TODO';
-      const key = status === 'TODO' || status === 'To Do' ? 'To Do' :
-                  status === 'IN_PROGRESS' || status === 'In Progress' ? 'In Progress' :
-                  status === 'IN_REVIEW' || status === 'Review' ? 'Review' : 'Done';
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
+  const taskChartData = [
+    { name: 'To Do', value: statusCounts['To Do'] || 0, color: '#64748B' },
+    { name: 'In Progress', value: statusCounts['In Progress'] || 0, color: '#4F46E5' },
+    { name: 'Review', value: statusCounts['Review'] || 0, color: '#F59E0B' },
+    { name: 'Done', value: statusCounts['Done'] || 0, color: '#10B981' },
+  ].filter(item => item.value > 0);
 
-    const chartData = [
-      { name: 'To Do', value: statusCounts['To Do'] || 0, color: '#64748B' },
-      { name: 'In Progress', value: statusCounts['In Progress'] || 0, color: '#4F46E5' },
-      { name: 'Review', value: statusCounts['Review'] || 0, color: '#F59E0B' },
-      { name: 'Done', value: statusCounts['Done'] || 0, color: '#10B981' },
-    ].filter(item => item.value > 0);
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-16">
+      
+      {/* Onboarding Checklist (for new joiners) */}
+      <OnboardingDashboard />
 
-    return (
-      <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12">
-        <OnboardingDashboard />
-        
-        {/* Welcome Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-900 via-slate-800 to-indigo-900 p-8 text-white shadow-xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-[80px] opacity-30" />
-          <div className="absolute bottom-0 left-1/2 w-48 h-48 bg-sky-500 rounded-full blur-[60px] opacity-20" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name?.split(' ')[0] || 'User'}!</h1>
-              <p className="text-white/70">Here's a quick overview of your daily agenda.</p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center min-w-[100px]">
-                <p className="text-3xl font-black text-white">{activeTasks}</p>
-                <p className="text-xs font-semibold text-indigo-200 uppercase tracking-wider mt-1">Active Tasks</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center min-w-[100px]">
-                <p className="text-3xl font-black text-white">{pendingRequests}</p>
-                <p className="text-xs font-semibold text-indigo-200 uppercase tracking-wider mt-1">Pending Leave</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* ── 1. UNIFIED HERO HEADER ──────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 text-white shadow-2xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          <Link to="/attendance/check-in" className="group bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <CheckCircle size={24} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">Daily Check-In</h3>
-              </div>
-              <ArrowRight className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all shrink-0" size={18} />
-            </div>
-          </Link>
-
-          <Link to="/tasks" className="group bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <FolderKanban size={24} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">My Tasks</h3>
-              </div>
-              <ArrowRight className="text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all shrink-0" size={18} />
-            </div>
-          </Link>
-
-          <Link to="/crm" className="group bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Briefcase size={24} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 group-hover:text-amber-600 transition-colors">My Leads Hub</h3>
-              </div>
-              <ArrowRight className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all shrink-0" size={18} />
-            </div>
-          </Link>
-
-          <Link to={`/employees/${user?.id}`} className="group bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <UserPlus size={24} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-900 group-hover:text-sky-600 transition-colors">My Profile</h3>
-              </div>
-              <ArrowRight className="text-slate-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all shrink-0" size={18} />
-            </div>
-          </Link>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Column 1: Tasks */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <FolderKanban className="text-indigo-500" size={20} /> Upcoming Tasks
-                </h3>
-                <Link to="/tasks" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View All</Link>
-              </div>
-              
-              {!employeeData?.tasks.length ? (
-                <div className="text-center py-8 text-slate-500 text-sm">No tasks assigned to you right now.</div>
-              ) : (
-                <div className="space-y-3">
-                  {employeeData.tasks.filter(t => t.status !== 'DONE').slice(0, 4).map((task) => (
-                    <div key={task.id} className="p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors cursor-pointer" onClick={() => navigate('/tasks')}>
-                      <h4 className="font-bold text-slate-800 truncate">{task.title}</h4>
-                      <div className="flex items-center gap-3 mt-2 text-xs font-semibold">
-                        <span className={`px-2 py-1 rounded-md ${
-                          task.status === 'TODO' ? 'bg-slate-100 text-slate-600' :
-                          task.status === 'IN_PROGRESS' ? 'bg-indigo-100 text-indigo-700' :
-                          task.status === 'IN_REVIEW' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                        }`}>
-                          {task.status.replace('_', ' ')}
-                        </span>
-                        <span className={`px-2 py-1 rounded-md ${
-                          task.priority === 'HIGH' || task.priority === 'URGENT' ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-500'
-                        }`}>
-                          {task.priority}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-indigo-300 border border-white/15 backdrop-blur-md uppercase tracking-wider">
+                {role || 'Employee'}
+              </span>
+              {user?.department && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/5 text-slate-300 border border-white/10">
+                  {user.department}
+                </span>
               )}
             </div>
-
-            {/* Task Analytics Card */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-6">
-                <BarChart3 className="text-indigo-500" size={20} /> Task Workload
-              </h3>
-              {tasks.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-sm">
-                  No task data available to analyze.
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
-                  {/* Chart */}
-                  <div className="w-[180px] h-[180px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={chartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          formatter={(value) => [`${value} tasks`, 'Count']}
-                          contentStyle={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* Legend / Status list */}
-                  <div className="space-y-2.5 flex-1 max-w-[200px] w-full">
-                    {chartData.map((item) => (
-                      <div key={item.name} className="flex items-center justify-between text-xs font-semibold">
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                          <span>{item.name}</span>
-                        </div>
-                        <span className="text-slate-950 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">{item.value}</span>
-                      </div>
-                    ))}
-                    <div className="pt-3 border-t border-slate-100 flex justify-between text-xs font-bold text-slate-800">
-                      <span>Total Tasks</span>
-                      <span>{tasks.length}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">
+              Welcome back, {user?.name?.split(' ')[0] || 'User'}!
+            </h1>
+            <p className="text-slate-300/80 mt-1.5 text-sm font-medium">
+              Here is your real-time unified dashboard & agenda.
+            </p>
           </div>
 
-          {/* Column 2: Requests & Approvals */}
-          <div className="space-y-6">
-            
-            {/* Approval Queue for Managers */}
-            {isManager && (
-              <div className="bg-gradient-to-br from-indigo-50 to-white rounded-3xl border border-indigo-100 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <CheckCircle className="text-emerald-500" size={20} /> Approval Queue
-                  </h3>
-                  <Link to="/requests/queue" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">Go to Queue</Link>
-                </div>
-                
-                {pendingApprovals === 0 ? (
-                  <div className="text-center py-6 text-slate-500 text-sm">Your approval queue is empty.</div>
-                ) : (
-                  <div className="bg-white rounded-2xl p-4 border border-indigo-100 shadow-sm flex items-center justify-between">
-                    <div>
-                      <p className="text-2xl font-black text-indigo-700">{pendingApprovals}</p>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Requests</p>
-                    </div>
-                    <Button variant="primary" onClick={() => navigate('/requests/queue')}>Review Now</Button>
-                  </div>
-                )}
+          {/* Quick Stat Bubbles in Hero */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/15 text-center min-w-[95px]">
+              <p className="text-2xl font-black text-white">{activeTasks}</p>
+              <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider mt-0.5">My Tasks</p>
+            </div>
+
+            {hasPermission(userPermissions, 'view_team_queue') && (
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/15 text-center min-w-[95px]">
+                <p className="text-2xl font-black text-amber-300">{pendingApprovals}</p>
+                <p className="text-[10px] font-bold text-amber-200 uppercase tracking-wider mt-0.5">Approvals</p>
               </div>
             )}
 
-            {/* My Requests */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Calendar className="text-sky-500" size={20} /> Recent Requests
-                </h3>
-                <Link to="/requests/my" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">View All</Link>
+            {adminData?.totalUsers !== undefined && (
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/15 text-center min-w-[95px]">
+                <p className="text-2xl font-black text-emerald-300">{adminData.totalUsers}</p>
+                <p className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider mt-0.5">Headcount</p>
               </div>
-              
-              {!employeeData?.requests.length ? (
-                <div className="text-center py-8 text-slate-500 text-sm">You haven't submitted any requests recently.</div>
-              ) : (
-                <div className="space-y-3">
-                  {employeeData.requests.slice(0, 3).map((req) => (
-                    <div key={req.id} className="p-4 rounded-2xl border border-slate-100 flex items-center justify-between cursor-pointer hover:border-slate-300" onClick={() => navigate('/requests/my')}>
-                      <div>
-                        <h4 className="font-bold text-slate-800">{req.type} Request</h4>
-                        <p className="text-xs text-slate-500 mt-1">{req.startDate} to {req.endDate || req.startDate}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. QUICK ACTIONS TOOLBAR ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {hasPermission(userPermissions, 'view_employee_workspace') && (
+          <Link to="/attendance/check-in" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <CheckCircle size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">Daily Check-In</h4>
+                <p className="text-[11px] text-slate-400">Record attendance</p>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </Link>
+        )}
+
+        {hasPermission(userPermissions, 'view_employee_workspace') && (
+          <Link to="/tasks" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <FolderKanban size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors">Tasks Board</h4>
+                <p className="text-[11px] text-slate-400">View active sprint</p>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </Link>
+        )}
+
+        {hasPermission(userPermissions, 'view_team_queue') && (
+          <Link to="/requests/queue" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <CheckCircle size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-sm text-slate-900 group-hover:text-amber-600 transition-colors">Approval Queue</h4>
+                <p className="text-[11px] text-slate-400">{pendingApprovals} requests pending</p>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </Link>
+        )}
+
+        {hasPermission(userPermissions, 'view_growth_module') && (
+          <Link to="/crm" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <Briefcase size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-sm text-slate-900 group-hover:text-rose-600 transition-colors">Leads Hub</h4>
+                <p className="text-[11px] text-slate-400">CRM & growth pipeline</p>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-rose-500 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </Link>
+        )}
+
+        {hasPermission(userPermissions, ['view_hr_module', 'manage_users']) && (
+          <Link to="/users" className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <UserPlus size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-sm text-slate-900 group-hover:text-sky-600 transition-colors">User Directory</h4>
+                <p className="text-[11px] text-slate-400">Manage employees</p>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-sky-500 group-hover:translate-x-0.5 transition-all" />
+            </div>
+          </Link>
+        )}
+      </div>
+
+      {/* ── 3. DYNAMIC KPI CARDS GRID ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        {/* KPI: Active Tasks */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+              <FolderKanban size={20} />
+            </div>
+            <span className="text-xs font-semibold text-slate-400">Personal</span>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">My Active Tasks</p>
+          <h3 className="text-2xl font-black text-slate-900 mt-1">{activeTasks}</h3>
+        </div>
+
+        {/* KPI: Pending Requests */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+              <Clock size={20} />
+            </div>
+            <span className="text-xs font-semibold text-slate-400">Status</span>
+          </div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Leaves / Requests</p>
+          <h3 className="text-2xl font-black text-slate-900 mt-1">{pendingRequests}</h3>
+        </div>
+
+        {/* KPI: System Users (Admin/HR/Execs) */}
+        {adminData?.totalUsers !== undefined && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                <Users size={20} />
+              </div>
+              <TrendingUp size={16} className="text-emerald-500" />
+            </div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Headcount</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{adminData.totalUsers}</h3>
+          </div>
+        )}
+
+        {/* KPI: Active Projects */}
+        {adminData?.activeProjects !== undefined && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                <Activity size={20} />
+              </div>
+              <span className="text-xs font-semibold text-emerald-600">Active</span>
+            </div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Projects</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{adminData.activeProjects}</h3>
+          </div>
+        )}
+
+        {/* KPI: System Health */}
+        {adminData?.systemHealth !== undefined && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
+                <Zap size={20} />
+              </div>
+              <span className="text-xs font-bold text-emerald-600">Optimal</span>
+            </div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">System Health</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{adminData.systemHealth}</h3>
+          </div>
+        )}
+
+        {/* KPI: Growth Leads (Growth Lead / CEO / Sales) */}
+        {growthData && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
+                <Target size={20} />
+              </div>
+              <span className="text-xs font-semibold text-rose-600">CRM</span>
+            </div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Leads</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{growthData.leads?.length || 0}</h3>
+          </div>
+        )}
+
+        {/* KPI: Finance Quotations */}
+        {financeData && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                <DollarSign size={20} />
+              </div>
+              <span className="text-xs font-semibold text-emerald-600">Quotations</span>
+            </div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Quotations</p>
+            <h3 className="text-2xl font-black text-slate-900 mt-1">{financeData.quotations?.length || 0}</h3>
+          </div>
+        )}
+      </div>
+
+      {/* ── 4. DYNAMIC ANALYTICS & CONTENT GRID ───────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* COLUMN 1: CHARTS & WORKLOAD */}
+        <div className="space-y-6">
+
+          {/* Admin / HR Attendance Trend Chart */}
+          {adminData?.attendanceTrend && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Daily Attendance Trend</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Active employee check-ins over the last 7 days</p>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 rounded-full text-xs font-semibold text-emerald-700 border border-emerald-100">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  Real-time
+                </div>
+              </div>
+
+              <div className="h-60 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={adminData.attendanceTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorAttendance" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                    <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fill: '#64748B', fontSize: 11 }} />
+                    <YAxis tickLine={false} axisLine={false} allowDecimals={false} tick={{ fill: '#64748B', fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#FFF', borderRadius: '12px', borderColor: '#E2E8F0' }} />
+                    <Area type="monotone" dataKey="count" name="Checked In" stroke="#6366F1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAttendance)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Department Distribution (Admin / HR) */}
+          {adminData?.departmentData && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+              <h3 className="text-base font-bold text-slate-900 mb-5">Department Headcount Distribution</h3>
+              <div className="space-y-4">
+                {adminData.departmentData.map((dept: any) => (
+                  <div key={dept.name}>
+                    <div className="flex justify-between text-xs font-semibold mb-1.5">
+                      <span className="text-slate-700">{dept.name}</span>
+                      <span className="text-slate-500">{dept.employees} members</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${adminData.totalUsers ? (dept.employees / adminData.totalUsers) * 100 : 0}%`, 
+                          backgroundColor: dept.color || '#6366F1' 
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Task Workload PieChart */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 mb-6">
+              <BarChart3 className="text-indigo-500" size={18} /> My Workload Status
+            </h3>
+            {tasksList.length === 0 ? (
+              <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                No active tasks assigned to you right now.
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center justify-around gap-6">
+                <div className="w-[170px] h-[170px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={taskChartData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="value">
+                        {taskChartData.map((entry, idx) => (
+                          <Cell key={`cell-${idx}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} tasks`, 'Count']} contentStyle={{ borderRadius: '12px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-2 flex-1 max-w-[200px] w-full">
+                  {taskChartData.map((item) => (
+                    <div key={item.name} className="flex items-center justify-between text-xs font-semibold">
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span>{item.name}</span>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-bold rounded-md ${
-                        req.status === 'Active' ? 'bg-emerald-100 text-emerald-700' :
-                        req.status === 'Inactive' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {req.status === 'Active' ? 'APPROVED' : req.status === 'Inactive' ? 'REJECTED' : 'PENDING'}
-                      </span>
+                      <span className="text-slate-900 font-bold">{item.value}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Upcoming Tasks List */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <FolderKanban className="text-indigo-500" size={18} /> Upcoming Tasks
+              </h3>
+              <Link to="/tasks" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">View All</Link>
+            </div>
+            
+            {employeeData.tasks.length === 0 ? (
+              <div className="text-center py-6 text-slate-400 text-xs font-medium">No pending tasks.</div>
+            ) : (
+              <div className="space-y-2.5">
+                {employeeData.tasks.filter(t => t.status !== 'DONE').slice(0, 4).map((task) => (
+                  <div key={task.id} className="p-3.5 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/20 transition-all cursor-pointer" onClick={() => navigate('/tasks')}>
+                    <h4 className="font-bold text-sm text-slate-800 truncate">{task.title}</h4>
+                    <div className="flex items-center gap-2 mt-2 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">{task.status.replace('_', ' ')}</span>
+                      <span className={`px-2 py-0.5 rounded-md ${task.priority === 'HIGH' || task.priority === 'URGENT' ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-500'}`}>
+                        {task.priority}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* COLUMN 2: DOMAIN MODULES & QUEUES */}
+        <div className="space-y-6">
+
+          {/* Approval Queue Widget for Managers / HR / Admin */}
+          {hasPermission(userPermissions, 'view_team_queue') && (
+            <div className="bg-gradient-to-br from-indigo-50/60 to-white rounded-3xl border border-indigo-100 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <CheckCircle className="text-emerald-500" size={18} /> Team Approval Queue
+                </h3>
+                <Link to="/requests/queue" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Review Queue</Link>
+              </div>
+
+              {pendingApprovals === 0 ? (
+                <div className="text-center py-6 text-slate-500 text-xs font-medium">Your team approval queue is clear!</div>
+              ) : (
+                <div className="bg-white rounded-2xl p-4 border border-indigo-100 shadow-sm flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-black text-indigo-700">{pendingApprovals}</p>
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Requests</p>
+                  </div>
+                  <Button variant="primary" onClick={() => navigate('/requests/queue')}>Review Now</Button>
                 </div>
               )}
             </div>
+          )}
 
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Admin/HR View
-  return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">System Overview</h1>
-          <p className="text-slate-500 mt-1">Key metrics and analytics for {role}</p>
-        </div>
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white rounded-xl border border-slate-200 shadow-sm">
-          <BarChart3 size={16} className="text-indigo-500" />
-          <span className="text-sm font-medium text-slate-600">Live Dashboard</span>
-        </div>
-      </div>
-
-      {data && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-blue-50">
-                  <Users size={22} className="text-blue-600" />
-                </div>
-                <TrendingUp size={16} className="text-emerald-500" />
-              </div>
-              <p className="text-sm font-medium text-slate-500">Total Users</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.totalUsers}</h3>
-            </div>
-
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-indigo-50">
-                  <FolderKanban size={22} className="text-indigo-600" />
-                </div>
-                <TrendingUp size={16} className="text-emerald-500" />
-              </div>
-              <p className="text-sm font-medium text-slate-500">Active Projects</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.activeProjects}</h3>
-            </div>
-
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-amber-50">
-                  <Clock size={22} className="text-amber-600" />
-                </div>
-              </div>
-              <p className="text-sm font-medium text-slate-500">Pending Requests</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.pendingRequests}</h3>
-            </div>
-
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card hover:shadow-card-hover transition-all duration-200">
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-emerald-50">
-                  <Activity size={22} className="text-emerald-600" />
-                </div>
-              </div>
-              <p className="text-sm font-medium text-slate-500">System Health</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.systemHealth}</h3>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* Daily Attendance Trend (Real Data Chart) */}
-              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-base font-semibold text-slate-900">Daily Attendance Trend</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Active employee check-ins over the last 7 days</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 rounded-full text-xs font-semibold text-emerald-700">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                    Real-time
-                  </div>
-                </div>
-
-                <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={data.attendanceTrend || []}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                      <XAxis 
-                        dataKey="date" 
-                        tickLine={false} 
-                        axisLine={false} 
-                        tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
-                      />
-                      <YAxis 
-                        tickLine={false} 
-                        axisLine={false} 
-                        allowDecimals={false}
-                        tick={{ fill: '#64748B', fontSize: 11, fontWeight: 500 }} 
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#FFFFFF', 
-                          borderColor: '#E2E8F0', 
-                          borderRadius: '12px', 
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' 
-                        }} 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="count" 
-                        name="Checked In"
-                        stroke="#6366F1" 
-                        strokeWidth={2.5} 
-                        fillOpacity={1} 
-                        fill="url(#colorCount)" 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Department Distribution */}
-              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card">
-                <h3 className="text-base font-semibold text-slate-900 mb-5">Department Distribution</h3>
-                <div className="space-y-5">
-                  {data.departmentData?.map((dept: any) => (
-                    <div key={dept.name}>
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="font-medium text-slate-700">{dept.name}</span>
-                        <span className="text-slate-500">{dept.employees} employees</span>
-                      </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                        <div 
-                          className="h-full rounded-full transition-all duration-500" 
-                          style={{ width: `${(dept.employees / data.totalUsers) * 100}%`, backgroundColor: dept.color || '#6366F1' }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card">
-                <h3 className="text-base font-semibold text-slate-900 mb-5">Recent Activity</h3>
-                <div className="space-y-4">
-                  {data.recentActivity?.map((activity: any, idx: number) => (
-                    <div key={idx} className="flex gap-3 group">
-                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-colors">
-                        <FileText size={14} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-700 truncate">{activity.action}</p>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
-                          <span>{activity.user}</span>
-                          <span>·</span>
-                          <span>{activity.time ? new Date(activity.time).toLocaleDateString() : 'Just now'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-card">
-                <h3 className="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                  <Calendar size={18} className="text-pink-500" />
-                  Upcoming Birthdays
+          {/* Operations Lead Module */}
+          {hasPermission(userPermissions, 'view_ops_module') && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Layers className="text-indigo-500" size={18} /> Operations & SOPs Hub
                 </h3>
-                <div className="space-y-4">
-                  {data.upcomingBirthdays?.map((birthday: any) => (
-                    <div key={birthday.id} className="flex items-center justify-between group">
-                      <div className="flex gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-pink-50 flex items-center justify-center shrink-0 border border-pink-100 text-pink-500 font-bold text-xs">
-                          {birthday.name.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-800 truncate leading-snug">{birthday.name}</p>
-                          <p className="text-xs text-slate-400 mt-0.5 truncate">{birthday.department}</p>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[11px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full inline-block">
-                          {new Date(birthday.birthdate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                        </p>
-                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
-                          {birthday.daysRemaining === 0 ? 'Today! 🎂' : `${birthday.daysRemaining} days left`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {(!data.upcomingBirthdays || data.upcomingBirthdays.length === 0) && (
-                    <div className="text-center text-xs text-slate-400 py-4 font-medium">
-                      No upcoming birthdays
-                    </div>
-                  )}
+                <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Ops Lead</span>
+              </div>
+
+              <form onSubmit={handleCreateSOP} className="flex gap-2">
+                <input 
+                  type="text" 
+                  className="ems-input flex-1 text-xs" 
+                  placeholder="New Standard Operating Procedure (SOP) title..."
+                  value={sopTitle}
+                  onChange={e => setSopTitle(e.target.value)}
+                />
+                <Button type="submit" disabled={isSubmitting || !sopTitle.trim()} className="text-xs px-3 py-1.5">
+                  <Plus size={14} /> SOP
+                </Button>
+              </form>
+
+              <div className="space-y-2 pt-2">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Recent SOPs</p>
+                {(opsData?.sops || []).slice(0, 3).map((sop: any) => (
+                  <div key={sop.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-800 truncate">{sop.title}</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400 bg-white px-2 py-0.5 rounded border">{sop.ref_number || 'SOP-01'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Growth Lead Module */}
+          {hasPermission(userPermissions, 'view_growth_module') && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Target className="text-rose-500" size={18} /> Growth & Lead Pipeline
+                </h3>
+                <Link to="/crm" className="text-xs font-bold text-indigo-600">Open CRM</Link>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-3 bg-rose-50 rounded-2xl border border-rose-100">
+                  <p className="text-lg font-black text-rose-700">{growthData?.stageCounts?.New || 0}</p>
+                  <p className="text-[10px] font-bold text-rose-600 uppercase">New Leads</p>
+                </div>
+                <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100">
+                  <p className="text-lg font-black text-amber-700">{growthData?.stageCounts?.['Meeting Scheduled'] || 0}</p>
+                  <p className="text-[10px] font-bold text-amber-600 uppercase">Meetings</p>
+                </div>
+                <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
+                  <p className="text-lg font-black text-emerald-700">{growthData?.stageCounts?.Won || 0}</p>
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase">Closed Won</p>
                 </div>
               </div>
             </div>
-          </div>
-        </>
-      )}
+          )}
+
+          {/* Product Lead Module */}
+          {hasPermission(userPermissions, 'view_product_module') && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Cpu className="text-violet-500" size={18} /> Product Roadmap Status
+              </h3>
+              {(productData?.roadmap || []).slice(0, 3).map((item: any) => (
+                <div key={item.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
+                  <div>
+                    <p className="font-bold text-slate-800">{item.title}</p>
+                    <p className="text-[10px] text-slate-400">{item.quarter}</p>
+                  </div>
+                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-md font-bold text-[10px]">{item.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Security Lead Module */}
+          {hasPermission(userPermissions, 'view_security_module') && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Lock className="text-emerald-500" size={18} /> Security & Audit Feed
+                </h3>
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Compliant</span>
+              </div>
+              {(securityData?.vulnerabilities || []).map((vuln: any) => (
+                <div key={vuln.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-800">{vuln.title}</span>
+                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 font-bold rounded text-[10px]">{vuln.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Intern Module */}
+          {hasPermission(userPermissions, 'view_intern_module') && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <BookOpen className="text-sky-500" size={18} /> Intern Learning & Hours Tracker
+              </h3>
+              <form onSubmit={handleLogInternHours} className="space-y-3">
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="12" 
+                    className="ems-input w-24 text-xs" 
+                    value={internHours}
+                    onChange={e => setInternHours(Number(e.target.value))}
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Description of work / lecture..." 
+                    className="ems-input flex-1 text-xs"
+                    value={internDesc}
+                    onChange={e => setInternDesc(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" disabled={isSubmitting} className="w-full text-xs py-2">
+                  Log Training Hours
+                </Button>
+              </form>
+            </div>
+          )}
+
+          {/* Recent Activity Feed */}
+          {adminData?.recentActivity && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+              <h3 className="text-base font-bold text-slate-900 mb-4">Recent System Activity</h3>
+              <div className="space-y-3">
+                {adminData.recentActivity.slice(0, 4).map((act: any, idx: number) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center border text-slate-400 shrink-0">
+                      <FileText size={13} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 truncate">{act.action}</p>
+                      <p className="text-[10px] text-slate-400">{act.user} · {act.time ? new Date(act.time).toLocaleDateString() : 'Today'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Birthdays */}
+          {adminData?.upcomingBirthdays && (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+              <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Calendar size={16} className="text-pink-500" /> Upcoming Birthdays
+              </h3>
+              <div className="space-y-3">
+                {adminData.upcomingBirthdays.slice(0, 3).map((b: any) => (
+                  <div key={b.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 font-bold text-xs flex items-center justify-center border border-pink-100">
+                        {b.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">{b.name}</p>
+                        <p className="text-[10px] text-slate-400">{b.department}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
+                      {b.daysRemaining === 0 ? 'Today! 🎂' : `${b.daysRemaining}d left`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+      </div>
+
     </div>
   );
 };

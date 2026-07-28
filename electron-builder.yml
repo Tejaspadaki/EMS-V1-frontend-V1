@@ -6,6 +6,9 @@ files:
   - dist/**/*
   - electron/**/*
   - package.json
+publish:
+  provider: generic
+  url: https://ems-backend.yuktiyantra.com/updates/
 win:
   cscLink: null
   target:
@@ -22,4 +25,3 @@ nsis:
   createStartMenuShortcut: true
   shortcutName: "Employee Management System"
   runAfterFinish: true
-

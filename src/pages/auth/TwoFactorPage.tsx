@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { OtpInput } from '../../components/auth/OtpInput';
 import { verify2FA, resendOTP } from '../../api/auth.api';
 import { useAuthStore, getRoleDashboardRoute, normalizeRole } from '../../store/authStore';
 import { Shield, ArrowLeft, RefreshCw, Smartphone, Mail } from 'lucide-react';
@@ -13,24 +13,38 @@ export const TwoFactorPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [method, setMethod] = useState<'email' | 'app'>('email');
+  const [resendTimer, setResendTimer] = useState(30);
+  const [isTimerActive, setIsTimerActive] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isTwoFactorRequired && !isAuthenticated) {
       navigate('/login');
     }
   }, [isTwoFactorRequired, isAuthenticated, navigate]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTimerActive && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setIsTimerActive(false);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerActive, resendTimer]);
+
   if (!isTwoFactorRequired && !isAuthenticated) {
     return null;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerify = async (codeToVerify: string) => {
+    if (codeToVerify.length !== 6) return;
     setError('');
     setLoading(true);
-    
+
     try {
-      const response = await verify2FA(code);
+      const response = await verify2FA(codeToVerify);
       loginSuccess(response.token || accessToken || '', response.user);
       navigate(getRoleDashboardRoute(normalizeRole(response.user.role)));
     } catch (err: any) {
@@ -42,9 +56,18 @@ export const TwoFactorPage: React.FC = () => {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleVerify(code);
+  };
+
   const handleResend = async () => {
+    if (isTimerActive) return;
+    setError('');
     try {
       await resendOTP();
+      setResendTimer(30);
+      setIsTimerActive(true);
     } catch (err) {
       setError('Failed to resend OTP.');
     }
@@ -53,7 +76,7 @@ export const TwoFactorPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
       <div className="w-full max-w-sm animate-fade-in">
-        <button 
+        <button
           onClick={() => navigate('/login')}
           className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-8 transition-colors"
         >
@@ -67,7 +90,7 @@ export const TwoFactorPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Two-Factor Auth</h1>
           <p className="text-slate-500 mt-1.5 text-sm">
-            {method === 'email' 
+            {method === 'email'
               ? 'Enter the 6-digit code sent to your email.'
               : 'Enter the 6-digit code from your authenticator app.'}
           </p>
@@ -76,8 +99,12 @@ export const TwoFactorPage: React.FC = () => {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-card">
           {devOtp && (
             <div className="mb-4 p-3 rounded-xl border border-amber-200 bg-amber-50">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1 text-center">Dev Mode OTP</p>
-              <p className="text-2xl font-mono font-bold tracking-[0.4em] text-amber-900 text-center">{devOtp}</p>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1 text-center">
+                Dev Mode OTP
+              </p>
+              <p className="text-2xl font-mono font-bold tracking-[0.4em] text-amber-900 text-center">
+                {devOtp}
+              </p>
             </div>
           )}
 
@@ -88,35 +115,45 @@ export const TwoFactorPage: React.FC = () => {
                 {error}
               </div>
             )}
-            
+
             <div>
-              <Input 
-                type="text" 
-                required 
-                maxLength={6}
+              <OtpInput
+                length={6}
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="000000"
-                className="text-center tracking-[0.3em] text-lg font-mono h-12"
+                onChange={setCode}
+                onComplete={handleVerify}
+                disabled={loading}
+                hasError={Boolean(error)}
               />
             </div>
 
-            <Button type="submit" variant="primary" fullWidth disabled={loading || code.length !== 6} size="lg">
+            <Button
+              type="submit"
+              variant="primary"
+              fullWidth
+              disabled={loading || code.length !== 6}
+              size="lg"
+            >
               {loading ? 'Verifying...' : 'Verify Code'}
             </Button>
           </form>
 
           <div className="mt-5 flex flex-col items-center gap-3 text-sm">
-            <button 
+            <button
               onClick={handleResend}
-              className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+              disabled={isTimerActive || loading}
+              className={`flex items-center gap-1.5 font-medium transition-colors ${
+                isTimerActive
+                  ? 'text-slate-400 cursor-not-allowed'
+                  : 'text-indigo-600 hover:text-indigo-700'
+              }`}
             >
-              <RefreshCw size={14} />
-              Resend OTP
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              {isTimerActive ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
             </button>
-            
-            <button 
-              onClick={() => setMethod(method === 'email' ? 'app' : 'email')} 
+
+            <button
+              onClick={() => setMethod(method === 'email' ? 'app' : 'email')}
               className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 transition-colors"
             >
               {method === 'email' ? <Smartphone size={14} /> : <Mail size={14} />}

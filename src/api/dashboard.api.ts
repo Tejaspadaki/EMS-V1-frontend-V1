@@ -1,43 +1,86 @@
 import api from './axios';
 
+const DEFAULT_OPS_DATA = {
+    headcountPlan: { current: 0, nextQuarterTarget: 5, spanOfControlFlags: 0 },
+    sops: [],
+    risks: [],
+    incidents: [],
+    tools: [],
+    improvements: [],
+    projects: []
+};
+
 export const getOpsDashboardData = async () => {
-    const res = await api.get('/dashboard/ops');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/ops');
+        return res.data.data;
+    } catch (err: any) {
+        console.warn('Ops Dashboard API warning (403/Forbidden or network issue):', err.message);
+        return DEFAULT_OPS_DATA;
+    }
 };
 
 export const getGrowthDashboardData = async () => {
-    const res = await api.get('/dashboard/growth');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/growth');
+        return res.data.data;
+    } catch (err: any) {
+        return { departmentName: 'Unassigned', stageCounts: {}, leads: [], attribution: [], followUpQueue: [] };
+    }
 };
 
 export const getProductDashboardData = async () => {
-    const res = await api.get('/dashboard/product');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/product');
+        return res.data.data;
+    } catch (err: any) {
+        return { roadmap: [], dependencies: [], feedbackLeads: [], productTasks: [] };
+    }
 };
 
 export const getDesignDashboardData = async () => {
-    const res = await api.get('/dashboard/design');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/design');
+        return res.data.data;
+    } catch (err: any) {
+        return { designers: [], designTasks: [] };
+    }
 };
 
 export const getEngLeadDashboardData = async () => {
-    const res = await api.get('/dashboard/engineering-lead');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/engineering-lead');
+        return res.data.data;
+    } catch (err: any) {
+        return { engineers: [], sprintTasks: [] };
+    }
 };
 
 export const getAILeadDashboardData = async () => {
-    const res = await api.get('/dashboard/ai-lead');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/ai-lead');
+        return res.data.data;
+    } catch (err: any) {
+        return { models: [], aiTasks: [] };
+    }
 };
 
 export const getSecurityDashboardData = async () => {
-    const res = await api.get('/dashboard/security');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/security');
+        return res.data.data;
+    } catch (err: any) {
+        return { auditLogs: [], securityAlerts: [] };
+    }
 };
 
 export const getFinanceDashboardData = async () => {
-    const res = await api.get('/dashboard/finance');
-    return res.data.data;
+    try {
+        const res = await api.get('/dashboard/finance');
+        return res.data.data;
+    } catch (err: any) {
+        return { revenue: 0, expenses: 0, claims: [] };
+    }
 };
 
 export const createSOP = async (sopData: { title: string; category: string; version?: string; review_date?: string }) => {
@@ -69,4 +112,3 @@ export const logInternHours = async (hoursData: { track_type: string; duration_h
     const res = await api.post('/dashboard/intern/hours', hoursData);
     return res.data;
 };
-

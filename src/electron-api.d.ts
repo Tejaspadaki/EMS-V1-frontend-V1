@@ -7,8 +7,8 @@ export interface SystemInfo {
 }
 
 export interface ElectronAPI {
-  onDeepLink: (callback: (url: string) => void) => void;
-  onNavigate: (callback: (path: string) => void) => void;
+  onDeepLink: (callback: (url: string) => void) => (() => void) | void;
+  onNavigate: (callback: (path: string) => void) => (() => void) | void;
   openDialog: (options: any) => Promise<any>;
   saveDialog: (options: any) => Promise<any>;
   showNotification: (options: { title: string; body: string }) => void;

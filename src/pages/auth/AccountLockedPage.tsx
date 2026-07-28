@@ -9,7 +9,13 @@ export const AccountLockedPage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <p className="text-slate-500">No active lockout. <a href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium underline">Return to Login</a>.</p>
+          <p className="text-slate-500">
+            No active lockout.{' '}
+            <a href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium underline">
+              Return to Login
+            </a>
+            .
+          </p>
         </div>
       </div>
     );
@@ -22,7 +28,7 @@ export const AccountLockedPage: React.FC = () => {
           <Lock className="text-white w-8 h-8" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900 mb-3">Account Locked</h1>
-        
+
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-card mb-6">
           <div className="flex items-start gap-3 mb-4">
             <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={20} />
@@ -37,9 +43,9 @@ export const AccountLockedPage: React.FC = () => {
           </div>
         </div>
 
-        <button 
+        <button
           className="inline-flex items-center gap-2 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg shadow-red-200 transition-all hover:-translate-y-0.5 active:scale-[0.98]"
-          onClick={() => window.location.href = 'mailto:superadmin@company.com'}
+          onClick={() => (window.location.href = 'mailto:superadmin@company.com')}
         >
           <Mail size={18} />
           Contact Super Admin
