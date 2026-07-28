@@ -1,0 +1,25 @@
+appId: com.ems.desktop
+productName: Employee Management System
+directories:
+  output: dist-electron
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+win:
+  cscLink: null
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: "Employee Management System"
+  runAfterFinish: true
+
