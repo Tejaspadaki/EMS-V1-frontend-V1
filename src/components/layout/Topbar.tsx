@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Bell, Search, LogOut, User, Settings, ChevronRight } from 'lucide-react';
+import { Menu, Bell, Search, LogOut, User, Settings, ChevronRight, Download, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useActivity, type ActivityState } from '../../contexts/ActivityContext';
 import { NotificationInbox } from '../notifications/NotificationInbox';
 import { CommandPalette } from '../ui/CommandPalette';
+import { AppUpdaterModal } from '../common/AppUpdaterModal';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { getInitials } from '../../utils/initials';
 
@@ -18,10 +19,26 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showUpdaterModal, setShowUpdaterModal] = useState(false);
+  const [hasUpdateReady, setHasUpdateReady] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Listen for background desktop update status
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.electronAPI) {
+      const removeListener = window.electronAPI.onUpdaterStatus((data) => {
+        if (data.status === 'downloaded' || data.status === 'available') {
+          setHasUpdateReady(true);
+        }
+      });
+      return () => {
+        if (typeof removeListener === 'function') removeListener();
+      };
+    }
+  }, []);
 
   // Ctrl + K / Cmd + K Hotkey Listener
   useEffect(() => {
@@ -125,6 +142,23 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* App Update Button */}
+          <button
+            onClick={() => setShowUpdaterModal(true)}
+            className={`relative p-2.5 rounded-xl transition-all duration-200 ${
+              hasUpdateReady 
+                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 animate-pulse' 
+                : 'hover:bg-slate-100 text-slate-500'
+            }`}
+            title="Check for Application Updates"
+            aria-label="App Updates"
+          >
+            <Download size={20} />
+            {hasUpdateReady && (
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white"></span>
+            )}
+          </button>
+
           <div className="relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
@@ -183,6 +217,13 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
                       <Settings size={16} />
                       Settings
                     </button>
+                    <button 
+                      onClick={() => { setShowUpdaterModal(true); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 font-medium rounded-lg transition-colors"
+                    >
+                      <Sparkles size={16} />
+                      Check for Updates
+                    </button>
                   </div>
                   <div className="border-t border-slate-100 p-1">
                     <button 
@@ -204,6 +245,12 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
       <CommandPalette 
         isOpen={showCommandPalette}
         onClose={() => setShowCommandPalette(false)}
+      />
+
+      {/* Application Auto-Updater Modal */}
+      <AppUpdaterModal 
+        isOpen={showUpdaterModal}
+        onClose={() => setShowUpdaterModal(false)}
       />
     </>
   );

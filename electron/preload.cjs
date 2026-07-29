@@ -31,6 +31,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dismissIncomingCall: () => ipcRenderer.send('incoming-call:dismiss'),
   
   // Platform metadata queries
-  getSystemInfo: () => ipcRenderer.invoke('system:info')
+  getSystemInfo: () => ipcRenderer.invoke('system:info'),
+
+  // Auto-updater API
+  checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+  quitAndInstall: () => ipcRenderer.invoke('updater:quit-and-install'),
+  getAppVersion: () => ipcRenderer.invoke('updater:get-version'),
+  onUpdaterStatus: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('updater-status', listener);
+    return () => ipcRenderer.removeListener('updater-status', listener);
+  },
+  onUpdaterProgress: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('updater-progress', listener);
+    return () => ipcRenderer.removeListener('updater-progress', listener);
+  }
 });
 

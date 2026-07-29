@@ -1,4 +1,4 @@
-const { dialog, Notification } = require('electron');
+const { dialog, Notification, ipcMain, app } = require('electron');
 
 let autoUpdater = null;
 try {
@@ -13,6 +13,28 @@ try {
  * Electron will automatically check, download, and apply the update.
  */
 function initAutoUpdater(mainWindow) {
+  // Register IPC Handlers for renderer manual trigger
+  ipcMain.handle('updater:check', async () => {
+    if (!autoUpdater) return { success: false, error: 'Auto-updater unavailable' };
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return { success: true, version: result?.updateInfo?.version };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('updater:quit-and-install', () => {
+    if (autoUpdater) {
+      console.log('[AUTO-UPDATER] User triggered quitAndInstall()');
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
+
+  ipcMain.handle('updater:get-version', () => {
+    return app.getVersion();
+  });
+
   if (!autoUpdater) {
     console.log('[AUTO-UPDATER] Skipping auto-updater initialization (module unavailable).');
     return;
@@ -47,9 +69,9 @@ function initAutoUpdater(mainWindow) {
 
     // 4. Event: No update available (running latest version)
     autoUpdater.on('update-not-available', (info) => {
-      console.log('[AUTO-UPDATER] Desktop app is up to date (v' + (info?.version || '') + ').');
+      console.log('[AUTO-UPDATER] Desktop app is up to date (v' + (info?.version || app.getVersion()) + ').');
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('updater-status', { status: 'not-available', version: info?.version });
+        mainWindow.webContents.send('updater-status', { status: 'not-available', version: info?.version || app.getVersion() });
       }
     });
 
