@@ -276,7 +276,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   <h4 className="font-extrabold text-sm text-slate-800 truncate flex items-center gap-1.5">
                     {col.name}
                     {isWipExceeded && (
-                      <ShieldAlert size={14} className="text-rose-500 shrink-0" title="WIP Limit Exceeded" />
+                      <span title="WIP Limit Exceeded">
+                        <ShieldAlert size={14} className="text-rose-500 shrink-0" />
+                      </span>
                     )}
                   </h4>
                   {col.wipLimit !== null && (

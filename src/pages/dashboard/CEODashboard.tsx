@@ -40,7 +40,7 @@ export const CEODashboard: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching CEO dashboard data', err);
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };

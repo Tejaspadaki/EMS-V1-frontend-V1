@@ -46,6 +46,7 @@ export interface ProjectTask {
   assigneeName?: string;
   assigneeId?: string;
   sprintId?: string;
+  columnId?: string;
 }
 
 const mapStage = (dbStatus: string): ProjectStage => {

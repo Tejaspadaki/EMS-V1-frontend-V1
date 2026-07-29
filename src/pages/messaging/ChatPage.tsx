@@ -10,6 +10,7 @@ import { Modal } from '../../components/ui/Modal';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from '../../utils/toast';
 import { getInitials } from '../../utils/initials';
+import { MediaLightboxModal } from '../../components/common/MediaLightboxModal';
 
 const playSendSound = () => {
   try {
@@ -68,6 +69,40 @@ const getAvatarColor = (name: string) => {
   return colors[idx];
 };
 
+
+const renderFormattedMessage = (content: string) => {
+  if (!content) return null;
+  const codeBlockRegex = /```([\s\S]*?)```/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', value: content.substring(lastIndex, match.index) });
+    }
+    parts.push({ type: 'code', value: match[1].trim() });
+    lastIndex = codeBlockRegex.lastIndex;
+  }
+  if (lastIndex < content.length) {
+    parts.push({ type: 'text', value: content.substring(lastIndex) });
+  }
+
+  return (
+    <div className="whitespace-pre-wrap break-words space-y-1 font-sans">
+      {parts.map((part, idx) => {
+        if (part.type === 'code') {
+          return (
+            <pre key={idx} className="bg-slate-900 text-emerald-400 p-3 rounded-xl font-mono text-xs overflow-x-auto my-1 border border-slate-700 leading-normal">
+              <code>{part.value}</code>
+            </pre>
+          );
+        }
+        return <span key={idx}>{part.value}</span>;
+      })}
+    </div>
+  );
+};
 
 export const ChatPage: React.FC = () => {
   const navigate = useNavigate();
@@ -711,7 +746,7 @@ export const ChatPage: React.FC = () => {
                               </button>
                             </>
                           ) : (
-                            <span>{msg.content}</span>
+                            renderFormattedMessage(msg.content)
                           )}
                         </div>
                       )}
@@ -858,14 +893,22 @@ export const ChatPage: React.FC = () => {
             <div className={`flex-1 bg-slate-50 border rounded-2xl overflow-hidden transition-all duration-200 ${
               inputText ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-slate-200 focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100'
             }`}>
-              <input
-                ref={inputRef}
-                type="text"
+              <textarea
+                ref={inputRef as any}
+                rows={1}
                 value={inputText}
                 onChange={e => setInputText(e.target.value)}
-                placeholder={activeChannel ? `Message #${activeChannelName}` : 'Select a channel first…'}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if ((inputText.trim() || pendingAttachment) && !isSending) {
+                      handleSend(e);
+                    }
+                  }
+                }}
+                placeholder={activeChannel ? `Message #${activeChannelName} (Shift+Enter for line break)` : 'Select a channel first…'}
                 disabled={!activeChannel}
-                className="w-full bg-transparent px-4 py-2.5 outline-none text-sm text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed"
+                className="w-full bg-transparent px-4 py-2.5 outline-none text-sm text-slate-900 placeholder:text-slate-400 disabled:cursor-not-allowed resize-none max-h-32 leading-relaxed"
               />
             </div>
 
@@ -1151,6 +1194,12 @@ export const ChatPage: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      <MediaLightboxModal 
+        isOpen={!!previewAttachment} 
+        onClose={() => setPreviewAttachment(null)} 
+        attachment={previewAttachment} 
+      />
     </div>
   );
 };

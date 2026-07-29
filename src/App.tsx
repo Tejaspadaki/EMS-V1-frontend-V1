@@ -10,6 +10,7 @@ import { getMyProfile } from './api/profile.api';
 
 import { useMeetingStore } from './store/meetingStore';
 import { GlobalMeetingOverlay } from './components/meetings/GlobalMeetingOverlay';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -160,8 +161,9 @@ function App() {
   }, [isAuthenticated, user]);
 
   return (
-    <OnboardingProvider>
-      <HashRouter>
+    <ErrorBoundary>
+      <OnboardingProvider>
+        <HashRouter>
         <DeepLinkListener />
         <GlobalMeetingOverlay />
         <Suspense fallback={
@@ -296,6 +298,7 @@ function App() {
           </Suspense>
       </HashRouter>
     </OnboardingProvider>
+  </ErrorBoundary>
   );
 }
 
