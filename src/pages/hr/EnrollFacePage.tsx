@@ -164,15 +164,20 @@ export const EnrollFacePage: React.FC = () => {
   };
 
   // Filter employees based on search term
-  const filteredEmployees = employees.filter(emp => {
+  const filteredEmployees = (employees || []).filter(emp => {
     const term = searchTerm.toLowerCase();
+    const nameStr = (emp.name || '').toLowerCase();
+    const empIdStr = (emp.empId || '').toLowerCase();
+    const emailStr = (emp.email || '').toLowerCase();
+    const deptStr = (emp.department || '').toLowerCase();
+
     return (
-      emp.name.toLowerCase().includes(term) ||
-      emp.empId.toLowerCase().includes(term) ||
-      emp.email.toLowerCase().includes(term) ||
-      (emp.department && emp.department.toLowerCase().includes(term))
+      nameStr.includes(term) ||
+      empIdStr.includes(term) ||
+      emailStr.includes(term) ||
+      deptStr.includes(term)
     );
-  }).sort((a, b) => a.name.localeCompare(b.name));
+  }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   if (pageLoading) {
     return (

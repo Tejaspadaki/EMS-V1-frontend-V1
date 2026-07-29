@@ -7,11 +7,26 @@ export interface StandupRecord {
   notes?: string;
 }
 
-export const submitCheckIn = async (data: { currentDescriptor: number[]; lat: number; lng: number }) => {
+export const getTodayAttendanceStatus = async () => {
+  const response = await api.get('/attendance/today-status');
+  return response.data.data;
+};
+
+export const submitCheckIn = async (data: { currentDescriptor?: number[]; lat: number; lng: number; isWFH?: boolean }) => {
   const response = await api.post('/attendance/checkin', { 
     currentDescriptor: data.currentDescriptor,
     latitude: data.lat,
-    longitude: data.lng
+    longitude: data.lng,
+    isWFH: data.isWFH || false
+  });
+  return response.data;
+};
+
+export const submitCheckOut = async (lat: number, lng: number, isWFH?: boolean) => {
+  const response = await api.post('/attendance/checkout', {
+    latitude: lat,
+    longitude: lng,
+    isWFH: isWFH || false
   });
   return response.data;
 };
@@ -31,7 +46,6 @@ export const enrollFace = async (data: {
 
 export const getStandups = async () => {
   const response = await api.get('/standups/me');
-  // Map backend 'PRESENT' to 'Attended' for UI
   return response.data.data.map((r: any) => ({
     ...r,
     status: r.status === 'PRESENT' ? 'Attended' : r.status
@@ -40,14 +54,6 @@ export const getStandups = async () => {
 
 export const excuseStandup = async (date: string, reason: string) => {
   const response = await api.post('/standups/excuse', { date, reason });
-  return response.data;
-};
-
-export const submitCheckOut = async (lat: number, lng: number) => {
-  const response = await api.post('/attendance/checkout', {
-    latitude: lat,
-    longitude: lng
-  });
   return response.data;
 };
 

@@ -39,6 +39,9 @@ const FaceApprovalPage = lazy(() => import('./pages/hr/FaceApprovalPage').then(m
 const AttendanceAuditPage = lazy(() => import('./pages/hr/AttendanceAuditPage'));
 const AttendanceDashboardPage = lazy(() => import('./pages/hr/AttendanceDashboardPage'));
 const HRDashboard = lazy(() => import('./pages/dashboard/HRDashboard').then(m => ({ default: m.HRDashboard })));
+const HRPerformanceDashboard = lazy(() => import('./pages/hr/HRPerformanceDashboard').then(m => ({ default: m.HRPerformanceDashboard })));
+const RegularizationApprovalPage = lazy(() => import('./pages/hr/RegularizationApprovalPage').then(m => ({ default: m.RegularizationApprovalPage })));
+const ClaimsApprovalPage = lazy(() => import('./pages/hr/ClaimsApprovalPage').then(m => ({ default: m.ClaimsApprovalPage })));
 const PayrollDashboard = lazy(() => import('./pages/dashboard/PayrollDashboard').then(m => ({ default: m.PayrollDashboard })));
 const MyPayslips = lazy(() => import('./pages/dashboard/MyPayslips').then(m => ({ default: m.MyPayslips })));
 const PerformanceDashboard = lazy(() => import('./pages/dashboard/PerformanceDashboard').then(m => ({ default: m.PerformanceDashboard })));
@@ -261,6 +264,12 @@ function App() {
                 </Route>
 
                 {/* HR / Super Admin */}
+                <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead']} />}>
+                  <Route path="/hr/performance" element={<HRPerformanceDashboard />} />
+                  <Route path="/hr/regularization-queue" element={<RegularizationApprovalPage />} />
+                  <Route path="/hr/claims-queue" element={<ClaimsApprovalPage />} />
+                </Route>
+
                 <Route element={<ProtectedRoute allowedRoles={['Super Admin', 'HR']} />}>
                   <Route path="/hr/onboard" element={<OnboardEmployeePage />} />
                   <Route path="/hr/onboarding-dashboard" element={<OnboardingDashboardPage />} />

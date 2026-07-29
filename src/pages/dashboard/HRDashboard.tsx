@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { getHRDemographics } from '../../api/hr.api';
-import { Users, UserPlus, PieChart as PieChartIcon, BarChart3, Activity, ShieldCheck, Settings, UserCheck, CheckCircle2, UserX } from 'lucide-react';
+import { Users, UserPlus, PieChart as PieChartIcon, BarChart3, Activity, ShieldCheck, Settings, UserCheck, CheckCircle2, UserX, Calendar } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../utils/toast';
 import { useNavigate } from 'react-router-dom';
+import { LeaveGrantModal } from '../../components/hr/LeaveGrantModal';
 
 export const HRDashboard: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [grantModalOpen, setGrantModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,6 +53,9 @@ export const HRDashboard: React.FC = () => {
           <p className="text-slate-500 mt-1">Employee lifecycle, onboarding/offboarding handover, leave policies & demographics</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Button variant="outline" icon={<Calendar size={16} />} onClick={() => setGrantModalOpen(true)}>
+            Grant Leaves
+          </Button>
           <Button variant="outline" icon={<Users size={16} />} onClick={() => navigate('/users')}>
             Employee Directory
           </Button>
@@ -59,6 +64,12 @@ export const HRDashboard: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <LeaveGrantModal
+        isOpen={grantModalOpen}
+        onClose={() => setGrantModalOpen(false)}
+        onSuccess={() => toast.success('Leave balances granted successfully!')}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -37,7 +37,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onTaskUpdated, 
   readOnly = false, 
   channelId,
-  projectMembers
+  projectMembers = []
 }) => {
   const [columns, setColumns] = useState<BoardColumn[]>([]);
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
@@ -87,6 +87,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
     setDraggedTaskId(taskId);
     e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -216,7 +220,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           className="ems-input text-xs py-0.5 px-2 bg-white border border-slate-200 font-semibold text-slate-600 cursor-pointer"
         >
           <option value="">All Assignees</option>
-          {projectMembers.map(m => (
+          {(projectMembers || []).map(m => (
             <option key={m.id} value={m.id}>{m.name}</option>
           ))}
         </select>

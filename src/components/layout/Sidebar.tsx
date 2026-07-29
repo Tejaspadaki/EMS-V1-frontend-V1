@@ -7,7 +7,7 @@ import {
   ClipboardList, Camera, MessageCircle, FolderKanban, 
   FileText, PlusCircle, Shield, BarChart3, UserCheck, 
   GitPullRequest, Building2, Calendar, UserMinus, BookOpen, Clock,
-  ChevronDown, ChevronRight
+  ChevronDown, ChevronRight, Award, DollarSign
 } from 'lucide-react';
 
 export interface SidebarProps {
@@ -118,6 +118,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       title: 'HR',
       items: [
         { label: 'HR Dashboard', path: '/hr/dashboard', icon: <BarChart3 size={18} />, roles: ['Super Admin', 'HR'] },
+        { label: 'Performance Admin', path: '/hr/performance', icon: <Award size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
+        { label: 'Regularization Queue', path: '/hr/regularization-queue', icon: <Clock size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
+        { label: 'Claims Queue', path: '/hr/claims-queue', icon: <DollarSign size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
         { label: 'Payroll Admin', path: '/hr/payroll', icon: <FileText size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Exit Management', path: '/hr/exits', icon: <UserMinus size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Onboard Employee', path: '/hr/onboard', icon: <UserPlus size={18} />, roles: ['Super Admin', 'HR'] },

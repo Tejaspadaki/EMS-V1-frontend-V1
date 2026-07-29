@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { getTrainingPrograms, getMyTrainings, enrollInTraining } from '../../api/lifecycle.api';
-import { BookOpen, CheckCircle, Clock } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, Plus } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { CreateTrainingModal } from '../../components/hr/CreateTrainingModal';
+import { useAuthStore } from '../../store/authStore';
 
 export const TrainingDashboard: React.FC = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [myTrainings, setMyTrainings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const user = useAuthStore(state => state.user);
+
+  const canCreate = ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Admin'].includes(user?.role || '');
 
   useEffect(() => {
     loadData();
@@ -18,8 +24,8 @@ export const TrainingDashboard: React.FC = () => {
         getTrainingPrograms(),
         getMyTrainings()
       ]);
-      setPrograms(progData);
-      setMyTrainings(myData);
+      setPrograms(progData || []);
+      setMyTrainings(myData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -50,7 +56,21 @@ export const TrainingDashboard: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900">Training Center</h1>
           <p className="text-slate-500 mt-1">Develop your skills and track mandatory compliance</p>
         </div>
+        {canCreate && (
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-indigo-200"
+          >
+            <Plus size={16} /> Add Program
+          </button>
+        )}
       </div>
+
+      <CreateTrainingModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={loadData}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
