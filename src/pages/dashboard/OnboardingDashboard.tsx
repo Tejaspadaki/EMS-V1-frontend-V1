@@ -94,7 +94,7 @@ export const OnboardingDashboard: React.FC = () => {
           </div>
           <div className="flex-1">
             <h3 className={`font-semibold ${isFaceEnrolled ? 'text-emerald-700' : 'text-slate-800'}`}>2. Face Enrollment</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Enroll your face for biometric attendance tracking.</p>
+            <p className="text-sm text-slate-500 mt-0.5">Enroll your face for face attendance tracking.</p>
           </div>
           {!isFaceEnrolled && (
             <button

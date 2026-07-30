@@ -4,6 +4,34 @@ import * as faceapi from 'face-api.js';
 let globalModelsLoaded = false;
 let globalModelsLoadingPromise: Promise<void> | null = null;
 
+// Eager model loading for sub-second startup
+const preloadModels = () => {
+  if (globalModelsLoaded || globalModelsLoadingPromise) return;
+  const MODEL_URL = './models';
+  globalModelsLoadingPromise = Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+  ])
+    .then(() => {
+      globalModelsLoaded = true;
+    })
+    .catch((err) => {
+      console.error('Eager model preload failed', err);
+      globalModelsLoadingPromise = null;
+    });
+};
+
+// Trigger model loading immediately upon file import
+preloadModels();
+
+export interface FaceDetectionResult {
+  descriptor: number[];
+  pose: 'front' | 'left' | 'right';
+  score: number;
+  box: { x: number; y: number; width: number; height: number };
+}
+
 export const useFaceApi = () => {
   const [isLoaded, setIsLoaded] = useState(globalModelsLoaded);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -14,57 +42,123 @@ export const useFaceApi = () => {
       return;
     }
 
+    let isMounted = true;
     const loadModels = async () => {
       try {
-        if (!globalModelsLoadingPromise) {
-          // Use a relative path so it works in both web and Electron (file:///)
-          const MODEL_URL = './models';
-          globalModelsLoadingPromise = Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-          ]).then(() => {});
+        preloadModels();
+        if (globalModelsLoadingPromise) {
+          await globalModelsLoadingPromise;
         }
-        await globalModelsLoadingPromise;
-        globalModelsLoaded = true;
-        setIsLoaded(true);
+        if (isMounted) {
+          setIsLoaded(true);
+        }
       } catch (err) {
         console.error('Failed to load face-api models', err);
-        setLoadError('Failed to initialize facial recognition engine. Please try refreshing.');
-        globalModelsLoadingPromise = null;
+        if (isMounted) {
+          setLoadError('Failed to initialize facial recognition engine. Please try refreshing.');
+        }
       }
     };
 
     loadModels();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const detectFaceAndGetDescriptor = async (videoElement: HTMLVideoElement): Promise<number[] | null> => {
-    if (!isLoaded) return null;
+  // Compute head pose (front, left, right) from landmark coordinates
+  const estimatePose = (landmarks: faceapi.FaceLandmarks68): 'front' | 'left' | 'right' => {
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+    const nose = landmarks.getNose();
 
-    const detection = await faceapi
-      .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
+    const leftEyeCenter = leftEye.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+    leftEyeCenter.x /= leftEye.length;
+    
+    const rightEyeCenter = rightEye.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+    rightEyeCenter.x /= rightEye.length;
 
-    if (detection) {
-      // faceapi returns a Float32Array, convert it to a standard array for JSON transport
-      return Array.from(detection.descriptor);
+    const eyeDistance = Math.abs(rightEyeCenter.x - leftEyeCenter.x);
+    const eyesCenterX = (leftEyeCenter.x + rightEyeCenter.x) / 2;
+    const noseTipX = nose[3] ? nose[3].x : nose[0].x;
+
+    const yawRatio = (noseTipX - eyesCenterX) / (eyeDistance || 1);
+
+    // Note: Video is mirrored horizontally in UI
+    if (yawRatio < -0.15) {
+      return 'right'; 
+    } else if (yawRatio > 0.15) {
+      return 'left';
     }
-    return null;
+    return 'front';
   };
 
-  const captureFrameAsBase64 = (videoElement: HTMLVideoElement): string | null => {
+  const detectFaceFull = async (videoElement: HTMLVideoElement): Promise<FaceDetectionResult | null> => {
+    if (!isLoaded || !videoElement || videoElement.paused || videoElement.ended) return null;
+
     try {
+      const detection = await faceapi
+        .detectSingleFace(
+          videoElement,
+          new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
+        )
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection) return null;
+
+      const pose = estimatePose(detection.landmarks);
+      const descriptor = Array.from(detection.descriptor);
+      const box = {
+        x: detection.detection.box.x,
+        y: detection.detection.box.y,
+        width: detection.detection.box.width,
+        height: detection.detection.box.height,
+      };
+
+      return {
+        descriptor,
+        pose,
+        score: detection.detection.score,
+        box,
+      };
+    } catch (err) {
+      console.warn('Face detection error:', err);
+      return null;
+    }
+  };
+
+  const detectFaceAndGetDescriptor = async (videoElement: HTMLVideoElement): Promise<number[] | null> => {
+    const res = await detectFaceFull(videoElement);
+    return res ? res.descriptor : null;
+  };
+
+  // High performance JPEG capture (85% quality, resized max 640px)
+  const captureFrameAsJpeg = (videoElement: HTMLVideoElement, quality = 0.85, maxDim = 640): string | null => {
+    try {
+      if (!videoElement || !videoElement.videoWidth) return null;
+      let width = videoElement.videoWidth;
+      let height = videoElement.videoHeight;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
       const canvas = document.createElement('canvas');
-      canvas.width = videoElement.videoWidth;
-      canvas.height = videoElement.videoHeight;
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        // Draw the video frame to the canvas (also mirror it back so it looks right)
         ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
         ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        return canvas.toDataURL('image/png');
+        return canvas.toDataURL('image/jpeg', quality);
       }
     } catch (e) {
       console.error('Failed to capture frame', e);
@@ -72,39 +166,16 @@ export const useFaceApi = () => {
     return null;
   };
 
-  const calculateEAR = (eye: faceapi.Point[]) => {
-    const d = (p1: faceapi.Point, p2: faceapi.Point) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-    const v1 = d(eye[1], eye[5]);
-    const v2 = d(eye[2], eye[4]);
-    const h = d(eye[0], eye[3]);
-    return (v1 + v2) / (2.0 * h);
+  const captureFrameAsBase64 = (videoElement: HTMLVideoElement): string | null => {
+    return captureFrameAsJpeg(videoElement, 0.85, 640);
   };
 
-  const detectBlink = async (videoElement: HTMLVideoElement): Promise<{ isBlinking: boolean, descriptor?: number[] }> => {
-    if (!isLoaded) return { isBlinking: false };
-
-    const detection = await faceapi
-      .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if (detection) {
-      const leftEye = detection.landmarks.getLeftEye();
-      const rightEye = detection.landmarks.getRightEye();
-      
-      const leftEAR = calculateEAR(leftEye);
-      const rightEAR = calculateEAR(rightEye);
-      const avgEAR = (leftEAR + rightEAR) / 2.0;
-
-      const isBlinking = avgEAR < 0.25;
-      
-      return { 
-        isBlinking, 
-        descriptor: Array.from(detection.descriptor) 
-      };
-    }
-    return { isBlinking: false };
+  return {
+    isLoaded,
+    loadError,
+    detectFaceFull,
+    detectFaceAndGetDescriptor,
+    captureFrameAsJpeg,
+    captureFrameAsBase64,
   };
-
-  return { isLoaded, loadError, detectFaceAndGetDescriptor, captureFrameAsBase64, detectBlink };
 };

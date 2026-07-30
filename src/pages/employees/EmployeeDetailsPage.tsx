@@ -147,7 +147,7 @@ export const EmployeeDetailsPage: React.FC = () => {
         return;
       }
 
-      setEnrollStatus('Saving biometric data...');
+      setEnrollStatus('Saving face data...');
       await enrollFace({ employeeId: id, faceDescriptor: descriptor });
       
       setEnrollStatus('Face enrolled successfully!');
@@ -525,10 +525,10 @@ export const EmployeeDetailsPage: React.FC = () => {
         </div>
       </Modal>
 
-      <Modal isOpen={enrollModal} onClose={() => { setEnrollModal(false); stopCamera(); setEnrollStatus(''); }} title="Enroll Biometric Face Data">
-        <div className="p-5 space-y-5">
-          <p className="text-sm text-gray-600 font-medium">
-            Position the employee's face clearly in the camera view to capture their biometric descriptor for Check-In authentication.
+      <Modal isOpen={enrollModal} onClose={() => { setEnrollModal(false); stopCamera(); setEnrollStatus(''); }} title="Enroll Face Data">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-500">
+            Position the employee's face clearly in the camera view to capture their face profile for Check-In authentication.
           </p>
           
           <div className="relative bg-black rounded-2xl overflow-hidden h-72 flex items-center justify-center shadow-inner border border-gray-200">

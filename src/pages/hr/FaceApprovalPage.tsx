@@ -96,7 +96,7 @@ export const FaceApprovalPage: React.FC = () => {
             Face Enrollment Approvals
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Review and approve new biometric face profiles before they can be used for check-in.
+            Review and approve new face profiles before they can be used for check-in.
           </p>
         </div>
       </div>
