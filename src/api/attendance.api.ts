@@ -32,13 +32,18 @@ export const submitCheckOut = async (lat: number, lng: number, isWFH?: boolean) 
 };
 
 export const enrollFace = async (data: { 
-  descriptors: { front: number[]; left?: number[]; right?: number[] }; 
-  images: { front: string; left?: string; right?: string };
-  employeeId: string;
+  descriptors?: { front: number[]; left?: number[]; right?: number[] }; 
+  images?: { front: string; left?: string; right?: string };
+  faceDescriptor?: number[];
+  image?: string;
+  employeeId?: string;
 }) => {
+  const descriptors = data.descriptors || (data.faceDescriptor ? { front: data.faceDescriptor } : undefined);
+  const images = data.images || (data.image ? { front: data.image } : { front: 'data:image/jpeg;base64,placeholder' });
+
   const response = await api.post('/attendance/enroll-face', { 
-    descriptors: data.descriptors,
-    images: data.images,
+    descriptors,
+    images,
     employeeId: data.employeeId
   });
   return response.data;

@@ -148,7 +148,25 @@ export const EmployeeDetailsPage: React.FC = () => {
       }
 
       setEnrollStatus('Saving face data...');
-      await enrollFace({ employeeId: id, faceDescriptor: descriptor });
+      let capturedImage: string | undefined = undefined;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth || 640;
+        canvas.height = videoRef.current.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          capturedImage = canvas.toDataURL('image/jpeg', 0.8);
+        }
+      } catch (e) {
+        console.warn('Could not capture frame image:', e);
+      }
+
+      await enrollFace({ 
+        employeeId: id, 
+        descriptors: { front: descriptor },
+        images: capturedImage ? { front: capturedImage } : undefined
+      });
       
       setEnrollStatus('Face enrolled successfully!');
       setTimeout(() => {

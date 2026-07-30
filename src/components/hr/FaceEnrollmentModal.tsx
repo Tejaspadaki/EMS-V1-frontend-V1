@@ -58,8 +58,23 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentModalProps> = ({ isOpen
         return;
       }
 
+      let capturedImage: string | undefined = undefined;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth || 640;
+        canvas.height = videoRef.current.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          capturedImage = canvas.toDataURL('image/jpeg', 0.8);
+        }
+      } catch (e) {
+        console.warn('Could not capture frame image:', e);
+      }
+
       await enrollFace({ 
-        faceDescriptor: descriptor,
+        descriptors: { front: descriptor },
+        images: capturedImage ? { front: capturedImage } : undefined,
         employeeId: employeeId
       });
 
