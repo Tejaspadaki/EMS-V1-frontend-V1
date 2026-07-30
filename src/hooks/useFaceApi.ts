@@ -133,8 +133,8 @@ export const useFaceApi = () => {
     return res ? res.descriptor : null;
   };
 
-  // High performance JPEG capture (85% quality, resized max 640px)
-  const captureFrameAsJpeg = (videoElement: HTMLVideoElement, quality = 0.85, maxDim = 640): string | null => {
+  // High performance JPEG capture (50% quality, resized max 320px for minimal payload size < 25KB)
+  const captureFrameAsJpeg = (videoElement: HTMLVideoElement, quality = 0.5, maxDim = 320): string | null => {
     try {
       if (!videoElement || !videoElement.videoWidth) return null;
       let width = videoElement.videoWidth;
@@ -167,7 +167,7 @@ export const useFaceApi = () => {
   };
 
   const captureFrameAsBase64 = (videoElement: HTMLVideoElement): string | null => {
-    return captureFrameAsJpeg(videoElement, 0.85, 640);
+    return captureFrameAsJpeg(videoElement, 0.5, 320);
   };
 
   return {

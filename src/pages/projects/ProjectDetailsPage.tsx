@@ -85,7 +85,7 @@ export const ProjectDetailsPage: React.FC = () => {
     capacityHours: 40
   });
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'backlog' | 'board' | 'prs' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'board' | 'overview' | 'backlog' | 'prs' | 'settings'>('board');
 
   // Edit settings form state
   const [settingsForm, setSettingsForm] = useState({
@@ -166,14 +166,29 @@ export const ProjectDetailsPage: React.FC = () => {
     }
   };
 
+  const [isSubmittingTask, setIsSubmittingTask] = useState(false);
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
-    await createTask(id, taskForm);
-    setTaskModal(false);
-    setTaskForm({ title: '', priority: 'Medium', deadline: '', assigneeId: '' });
-    toast.success('Task created.');
-    loadData(); // Refetch
+    if (!taskForm.title.trim()) {
+      toast.error('Task title is required.');
+      return;
+    }
+    setIsSubmittingTask(true);
+    try {
+      await createTask(id, taskForm);
+      setTaskModal(false);
+      setTaskForm({ title: '', priority: 'Medium', deadline: '', assigneeId: '' });
+      toast.success('Task created successfully!');
+      loadData(); // Refetch tasks
+    } catch (err: any) {
+      console.error('Failed to create task:', err);
+      const errMsg = err.response?.data?.error?.message || err.message || 'Failed to create task. Please check parameters.';
+      toast.error(errMsg);
+    } finally {
+      setIsSubmittingTask(false);
+    }
   };
 
   const handleOpenMemberModal = async () => {
@@ -381,35 +396,35 @@ export const ProjectDetailsPage: React.FC = () => {
         {/* Kanban Board / PR Area */}
         <div className="flex-1 flex flex-col min-h-0 min-w-0">
           {/* Tabs */}
-          <div className="flex gap-2 mb-6 bg-white/40 p-2 rounded-2xl w-fit backdrop-blur-xl flex-wrap shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-white/80">
+          <div className="flex gap-2 mb-6 bg-white p-2 rounded-2xl w-fit flex-wrap shadow-xs border border-slate-200/80">
+            <button 
+              onClick={() => setActiveTab('board')}
+              className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'board' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold'}`}
+            >
+              <Activity size={18} /> Kanban Board
+            </button>
             <button 
               onClick={() => setActiveTab('overview')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'overview' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'}`}
+              className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'overview' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold'}`}
             >
               <FileText size={18} /> Overview & Health
             </button>
             <button 
               onClick={() => setActiveTab('backlog')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'backlog' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'}`}
+              className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'backlog' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold'}`}
             >
               <Sliders size={18} /> Backlog & Sprints
             </button>
             <button 
-              onClick={() => setActiveTab('board')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'board' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'}`}
-            >
-              <Activity size={18} /> Task Board
-            </button>
-            <button 
               onClick={() => setActiveTab('prs')}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'prs' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'}`}
+              className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'prs' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold'}`}
             >
               <Clock size={18} /> Git & Code Reviews
             </button>
             {isAllowedToAddTask && (
               <button 
                 onClick={() => setActiveTab('settings')}
-                className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${activeTab === 'settings' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'}`}
+                className={`px-5 py-2.5 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer ${activeTab === 'settings' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-bold'}`}
               >
                 <Settings size={18} /> Settings
               </button>
@@ -856,56 +871,84 @@ export const ProjectDetailsPage: React.FC = () => {
       </div>
 
       <Modal isOpen={taskModal} onClose={() => setTaskModal(false)} title="Create New Task">
-        <form onSubmit={handleCreateTask} className="p-2 space-y-4">
+        <form onSubmit={handleCreateTask} className="p-2 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Task Title</label>
-            <Input 
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1">
+              Task Title <span className="text-rose-500">*</span>
+            </label>
+            <input 
               type="text" 
               required 
+              placeholder="e.g. Implement user authentication workflow"
               value={taskForm.title} 
               onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} 
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm font-semibold text-slate-800 transition-all outline-none"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Priority</label>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Priority</label>
               <select 
-                className="ems-input w-full"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm font-bold text-slate-700 transition-all outline-none cursor-pointer"
                 value={taskForm.priority}
                 onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
               >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                <option value="Low">Low Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="High">High Priority</option>
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Deadline</label>
-              <Input 
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Deadline</label>
+              <input 
                 type="date" 
-                required 
                 value={taskForm.deadline} 
                 onChange={e => setTaskForm({ ...taskForm, deadline: e.target.value })} 
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm font-semibold text-slate-800 transition-all outline-none cursor-pointer"
               />
             </div>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Assignee</label>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
+              Assignee Member
+            </label>
             <select 
-              className="ems-input w-full"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 rounded-xl text-sm font-bold text-slate-700 transition-all outline-none cursor-pointer"
               value={taskForm.assigneeId}
               onChange={(e) => setTaskForm({ ...taskForm, assigneeId: e.target.value })}
-              required
             >
-              <option value="">Select a member...</option>
-              {project.members.map(m => (
-                <option key={m.id} value={m.id}>{m.name} ({m.role})</option>
+              <option value="">Unassigned (Open Backlog)</option>
+              {project?.members.map(m => (
+                <option key={m.id} value={m.id}>{m.name} ({m.role || 'Member'})</option>
               ))}
             </select>
           </div>
-          <div className="pt-2 flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={() => setTaskModal(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Create Task</Button>
+
+          <div className="pt-3 border-t border-slate-100 flex justify-end gap-3 items-center">
+            <button 
+              type="button" 
+              onClick={() => setTaskModal(false)}
+              className="px-4 py-2.5 text-xs font-extrabold text-slate-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={isSubmittingTask}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-indigo-500/20 transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {isSubmittingTask ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Creating Task...
+                </>
+              ) : (
+                'Create Task'
+              )}
+            </button>
           </div>
         </form>
       </Modal>

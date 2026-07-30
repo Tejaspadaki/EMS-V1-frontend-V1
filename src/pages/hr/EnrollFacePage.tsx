@@ -170,7 +170,7 @@ export const EnrollFacePage: React.FC = () => {
         return;
       }
 
-      jpegImage = captureFrameAsJpeg(videoRef.current, 0.85, 640);
+      jpegImage = captureFrameAsJpeg(videoRef.current, 0.5, 320);
       if (!jpegImage) {
         setError('Failed to capture frame.');
         setLoading(false);

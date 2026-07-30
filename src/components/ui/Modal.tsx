@@ -22,14 +22,19 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen) {
       previousActiveElement.current = document.activeElement as HTMLElement;
       document.body.style.overflow = 'hidden';
 
-      // Auto focus container or first input
-      setTimeout(() => {
+      // Auto focus container or first input on initial open only
+      const timer = setTimeout(() => {
         if (modalRef.current) {
           const focusable = modalRef.current.querySelectorAll<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -44,7 +49,7 @@ export const Modal: React.FC<ModalProps> = ({
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-          onClose();
+          onCloseRef.current();
           return;
         }
 
@@ -78,6 +83,7 @@ export const Modal: React.FC<ModalProps> = ({
       document.addEventListener('keydown', handleKeyDown);
 
       return () => {
+        clearTimeout(timer);
         document.removeEventListener('keydown', handleKeyDown);
         document.body.style.overflow = '';
         if (previousActiveElement.current) {
@@ -85,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({
         }
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

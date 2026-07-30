@@ -441,34 +441,36 @@ export const ChatPage: React.FC = () => {
     if (type === 'Direct') return <Users className={cls} />;
     return <Hash className={cls} />;
   };
-
   const activeChannelData = channels.find(c => c.id === activeChannel);
   const activeChannelName = activeChannelData?.name || '';
 
   const ChannelSidebar = () => (
-    <div className="flex flex-col h-full bg-slate-900">
+    <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800/80">
       {/* Sidebar Header */}
-      <div className="px-4 pt-5 pb-4 border-b border-white/10">
+      <div className="px-4 pt-5 pb-4 border-b border-slate-800/80">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <MessageCircle size={16} className="text-white" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <MessageCircle size={18} className="text-white" />
             </div>
-            <h2 className="font-bold text-white text-sm tracking-tight">Messages</h2>
+            <div>
+              <h2 className="font-extrabold text-white text-sm tracking-tight">Messages</h2>
+              <p className="text-[10px] font-semibold text-slate-400">Enterprise Workspace</p>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-lg">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/60 rounded-full border border-slate-700/50">
             <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`} />
-            <span className="text-[10px] font-semibold text-white/60">{channels.length}</span>
+            <span className="text-[10px] font-bold text-slate-300">{channels.length}</span>
           </div>
         </div>
         <div className="relative">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search channels..."
+            placeholder="Search channels & DMs..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-white/8 text-xs text-white/80 pl-8 pr-3 py-2 rounded-xl border border-white/10 outline-none focus:border-indigo-500/50 focus:bg-white/12 transition-all placeholder:text-white/25"
+            className="w-full bg-slate-900 text-xs text-slate-200 pl-9 pr-3 py-2.5 rounded-xl border border-slate-800 outline-none focus:border-indigo-500 focus:bg-slate-900/90 transition-all placeholder:text-slate-500 font-medium"
           />
         </div>
       </div>
@@ -478,15 +480,15 @@ export const ChatPage: React.FC = () => {
         {['Direct', 'Public', 'Project', 'Announcement', 'Private'].map((type) => (
           (groupedChannels[type] && groupedChannels[type].length > 0 || type === 'Private') && (
             <div key={type}>
-              <div className="flex items-center justify-between px-3 mb-1.5">
-                <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
-                  {type}
+              <div className="flex items-center justify-between px-3 mb-2">
+                <h3 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  {type === 'Direct' ? 'Direct Messages' : type === 'Private' ? 'Private Groups' : `${type} Channels`}
                 </h3>
                 {type === 'Private' && (
-                  <div className="flex items-center gap-2 text-white/40">
+                  <div className="flex items-center gap-2 text-indigo-400">
                     <button
                       onClick={(e) => { e.stopPropagation(); setShowCreateGroupModal(true); }}
-                      className="hover:text-white transition-colors text-xs font-bold"
+                      className="hover:text-indigo-300 transition-colors text-xs font-extrabold cursor-pointer"
                       title="Create Group"
                     >
                       + Create
@@ -494,7 +496,7 @@ export const ChatPage: React.FC = () => {
                     <span className="text-[9px] opacity-30">|</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); setShowJoinGroupModal(true); }}
-                      className="hover:text-white transition-colors text-[9px] font-medium"
+                      className="hover:text-indigo-300 transition-colors text-[10px] font-bold cursor-pointer"
                       title="Join with Code"
                     >
                       Join Code
@@ -502,51 +504,62 @@ export const ChatPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="space-y-0.5">
-                {groupedChannels[type] && groupedChannels[type].map(channel => (
-                  <button
-                    key={channel.id}
-                    onClick={() => { setActiveChannel(channel.id); setShowMobileSidebar(false); }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                      activeChannel === channel.id
-                        ? 'bg-white/15 text-white shadow-sm'
-                        : 'text-white/50 hover:bg-white/8 hover:text-white/80'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="shrink-0">{renderChannelIcon(channel.type)}</span>
-                      <span className="truncate text-xs font-medium">{channel.name}</span>
-                    </div>
-                    {channel.unreadCount > 0 && (
-                      <span className="shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] font-bold shadow-sm shadow-indigo-500/50">
-                        {channel.unreadCount > 9 ? '9+' : channel.unreadCount}
-                      </span>
-                    )}
-                  </button>
-                ))}
+              <div className="space-y-1">
+                {groupedChannels[type] && groupedChannels[type].map(channel => {
+                  const isActive = activeChannel === channel.id;
+                  return (
+                    <button
+                      key={channel.id}
+                      onClick={() => { setActiveChannel(channel.id); setShowMobileSidebar(false); }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-200 cursor-pointer ${
+                        isActive
+                          ? 'bg-indigo-600/20 text-white font-extrabold border-l-4 border-indigo-500 shadow-2xs pl-2.5'
+                          : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 font-medium'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {channel.type === 'Direct' ? (
+                          <div className={`w-7 h-7 rounded-xl bg-gradient-to-br ${getAvatarColor(channel.name)} flex items-center justify-center text-white text-[10px] font-black shadow-xs shrink-0 ring-1 ring-white/10`}>
+                            {getInitials(channel.name)}
+                          </div>
+                        ) : (
+                          <span className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-900 text-slate-400'}`}>
+                            {renderChannelIcon(channel.type)}
+                          </span>
+                        )}
+                        <span className="truncate text-xs tracking-tight">{channel.name}</span>
+                      </div>
+                      {channel.unreadCount > 0 && (
+                        <span className="shrink-0 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] font-extrabold shadow-xs shadow-indigo-500/50">
+                          {channel.unreadCount > 9 ? '9+' : channel.unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )
         ))}
         {filteredChannels.length === 0 && (
-          <div className="py-8 flex flex-col items-center justify-center text-white/20">
-            <Search size={24} className="mb-2" />
-            <p className="text-xs">No channels found</p>
+          <div className="py-8 flex flex-col items-center justify-center text-slate-500">
+            <Search size={24} className="mb-2 opacity-40" />
+            <p className="text-xs font-semibold">No channels found</p>
           </div>
         )}
       </div>
 
       {/* Sidebar Footer */}
-      <div className="shrink-0 px-4 py-3 border-t border-white/10">
+      <div className="shrink-0 p-3 m-2 bg-slate-900/80 rounded-2xl border border-slate-800/80">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold text-white bg-gradient-to-br ${getAvatarColor(user?.name || '')}`}>
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white bg-gradient-to-br ${getAvatarColor(user?.name || '')} shadow-xs`}>
               {getInitials(user?.name) || 'ME'}
             </div>
-            <div>
-              <p className="text-xs font-semibold text-white/80 leading-tight">{user?.name || 'Me'}</p>
-              <p className="text-[10px] text-white/30 flex items-center gap-1">
-                {isConnected ? <><Wifi size={9} className="text-emerald-400" /> Online</> : <><WifiOff size={9} className="text-rose-400" /> Offline</>}
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold text-white truncate">{user?.name || 'Me'}</p>
+              <p className="text-[10px] text-slate-400 flex items-center gap-1 font-semibold">
+                {isConnected ? <><Wifi size={10} className="text-emerald-400" /> Online</> : <><WifiOff size={10} className="text-rose-400" /> Offline</>}
               </p>
             </div>
           </div>
@@ -559,16 +572,16 @@ export const ChatPage: React.FC = () => {
     new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] rounded-2xl overflow-hidden shadow-2xl shadow-slate-900/20 animate-fade-in border border-slate-200">
+    <div className="flex h-[calc(100vh-7.5rem)] rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 animate-fade-in bg-white">
       {/* Desktop Sidebar */}
-      <div className="w-64 flex flex-col hidden md:flex shrink-0">
+      <div className="w-68 flex flex-col hidden md:flex shrink-0">
         <ChannelSidebar />
       </div>
 
       {/* Mobile Sidebar Overlay */}
       {showMobileSidebar && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileSidebar(false)} />
+          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowMobileSidebar(false)} />
           <div className="absolute left-0 top-0 bottom-0 w-72 shadow-2xl">
             <ChannelSidebar />
           </div>
@@ -576,29 +589,36 @@ export const ChatPage: React.FC = () => {
       )}
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white relative">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50/60 relative">
 
         {/* Header */}
-        <div className="h-[60px] border-b border-slate-100 px-5 flex items-center justify-between shrink-0 bg-white/90 backdrop-blur-md">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="h-16 border-b border-slate-200/80 px-6 flex items-center justify-between shrink-0 bg-white shadow-2xs">
+          <div className="flex items-center gap-3.5 min-w-0">
             <button
               onClick={() => setShowMobileSidebar(true)}
-              className="md:hidden p-1.5 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors"
+              className="md:hidden p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
             >
               <Hash size={18} />
             </button>
             {activeChannelData && (
-              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
-                {renderChannelIcon(activeChannelData.type)}
-              </div>
+              activeChannelData.type === 'Direct' ? (
+                <div className={`w-10 h-10 rounded-2xl text-xs font-black text-white flex items-center justify-center shadow-xs shrink-0 bg-gradient-to-br ${getAvatarColor(activeChannelName)} ring-2 ring-indigo-500/20`}>
+                  {getInitials(activeChannelName)}
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-2xl bg-slate-900 text-indigo-400 flex items-center justify-center shrink-0 border border-slate-800 shadow-xs">
+                  {renderChannelIcon(activeChannelData.type)}
+                </div>
+              )
             )}
             <div className="min-w-0">
-              <h3 className="font-bold text-slate-900 text-sm truncate">
+              <h3 className="font-extrabold text-slate-900 text-sm sm:text-base truncate flex items-center gap-2">
                 {activeChannel ? activeChannelName : 'Select a channel'}
               </h3>
               {activeChannel && (
-                <p className="text-[11px] text-slate-400 font-medium">
-                  {messages.length} message{messages.length !== 1 ? 's' : ''}
+                <p className="text-[11px] text-slate-500 font-semibold flex items-center gap-1.5 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Active Channel · {messages.length} message{messages.length !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
@@ -606,36 +626,36 @@ export const ChatPage: React.FC = () => {
 
           <div className="flex items-center gap-2">
             {!isConnected && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-xl border border-amber-200 animate-pulse">
-                <AlertCircle size={12} /> Reconnecting
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-bold rounded-xl border border-amber-200 animate-pulse">
+                <AlertCircle size={14} /> Reconnecting
               </div>
             )}
             {activeChannel && (
               <>
                 <button
                   onClick={() => setShowSearchPane(!showSearchPane)}
-                  className={`p-2.5 rounded-xl border transition-all shrink-0 ${
-                    showSearchPane ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  className={`p-2.5 rounded-xl border transition-all shrink-0 cursor-pointer ${
+                    showSearchPane ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                   title="Search Chat"
                 >
-                  <Search size={14} />
+                  <Search size={16} />
                 </button>
                 {activeChannel && !activeChannel.startsWith('dm_') && (
                   <button
                     onClick={() => { setShowGroupSettingsModal(true); loadGroupSettings(); }}
-                    className="p-2.5 bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 rounded-xl transition-all shrink-0"
+                    className="p-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl transition-all shrink-0 cursor-pointer"
                     title="Group settings & Members"
                   >
-                    <Users size={14} />
+                    <Users size={16} />
                   </button>
                 )}
                 <button
                   onClick={handleStartChannelMeeting}
                   disabled={isStartingMeeting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 shrink-0"
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-extrabold rounded-xl shadow-md shadow-indigo-500/20 transition-all hover:scale-102 active:scale-98 disabled:opacity-50 cursor-pointer shrink-0"
                 >
-                  <Phone size={13} />
+                  <Phone size={14} />
                   {isStartingMeeting ? 'Starting…' : 'Start Call'}
                 </button>
               </>
@@ -644,14 +664,16 @@ export const ChatPage: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-1 bg-gradient-to-b from-slate-50/50 to-white custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-3 custom-scrollbar">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-slate-300">
-              <div className="w-20 h-20 rounded-3xl bg-slate-100 flex items-center justify-center mb-4">
-                <MessageCircle size={36} className="text-slate-300" />
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-3">
+              <div className="w-16 h-16 rounded-3xl bg-indigo-50 text-indigo-500 border border-indigo-100 flex items-center justify-center shadow-xs">
+                <MessageCircle size={32} />
               </div>
-              <p className="text-base font-bold text-slate-400">No messages yet</p>
-              <p className="text-sm text-slate-300 mt-1">Be the first to say something 👋</p>
+              <div className="text-center">
+                <p className="text-base font-extrabold text-slate-800">No messages in this chat yet</p>
+                <p className="text-xs text-slate-400 mt-1">Start the conversation by sending a message below 👋</p>
+              </div>
             </div>
           )}
 
@@ -661,21 +683,21 @@ export const ChatPage: React.FC = () => {
             const isTemp = msg.id.startsWith('temp_');
 
             return (
-              <div key={msg.id} className={`flex flex-col ${msg.isSelf ? 'items-end' : 'items-start'} group w-full ${showName ? 'mt-4' : 'mt-0.5'}`}>
+              <div key={msg.id} className={`flex flex-col ${msg.isSelf ? 'items-end' : 'items-start'} group w-full ${showName ? 'mt-4' : 'mt-1'}`}>
                 {/* Sender name + avatar */}
                 {showName && !msg.isSelf && (
                   <div className="flex items-center gap-2 mb-1.5 ml-1">
-                    <div className={`w-7 h-7 rounded-xl text-[10px] font-bold flex items-center justify-center text-white bg-gradient-to-br ${getAvatarColor(msg.senderName || '')}`}>
+                    <div className={`w-7 h-7 rounded-xl text-[10px] font-black flex items-center justify-center text-white bg-gradient-to-br ${getAvatarColor(msg.senderName || '')} shadow-2xs`}>
                       {getInitials(msg.senderName)}
                     </div>
-                    <span className="text-xs font-semibold text-slate-600">{msg.senderName}</span>
+                    <span className="text-xs font-bold text-slate-700">{msg.senderName}</span>
                   </div>
                 )}
 
-                <div className={`flex items-end gap-2 ${msg.isSelf ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`flex items-end gap-2.5 ${msg.isSelf ? 'flex-row-reverse' : 'flex-row'}`}>
                   {/* Self avatar */}
                   {showName && msg.isSelf && (
-                    <div className={`w-7 h-7 rounded-xl text-[10px] font-bold flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${getAvatarColor(user?.name || '')}`}>
+                    <div className={`w-7 h-7 rounded-xl text-[10px] font-black flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${getAvatarColor(user?.name || '')} shadow-2xs`}>
                       {getInitials(user?.name) || 'ME'}
                     </div>
                   )}
@@ -683,15 +705,15 @@ export const ChatPage: React.FC = () => {
 
                   <div className="flex flex-col gap-1">
                     {/* Bubble */}
-                    <div className={`max-w-[420px] px-4 py-2.5 text-sm leading-relaxed break-words transition-opacity ${
+                    <div className={`max-w-[460px] px-4 py-3 text-sm leading-relaxed break-words transition-all ${
                       isTemp ? 'opacity-60' : 'opacity-100'
                     } ${
                       msg.isSelf
-                        ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700 text-white rounded-2xl rounded-br-md shadow-lg shadow-indigo-500/20'
-                        : 'bg-white text-slate-800 border border-slate-200/80 rounded-2xl rounded-bl-md shadow-sm'
+                        ? 'bg-gradient-to-br from-indigo-600 via-indigo-600 to-purple-600 text-white rounded-2xl rounded-tr-xs shadow-md shadow-indigo-500/15'
+                        : 'bg-white text-slate-800 border border-slate-200/80 rounded-2xl rounded-tl-xs shadow-2xs'
                     }`}>
                       {msg.isPinned && (
-                        <div className="flex items-center gap-1 text-[9px] font-bold opacity-75 mb-1.5 uppercase tracking-wider">
+                        <div className="flex items-center gap-1 text-[9px] font-extrabold opacity-75 mb-1.5 uppercase tracking-wider">
                           📌 Pinned Message
                         </div>
                       )}
@@ -701,7 +723,7 @@ export const ChatPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => msg.attachment && setPreviewAttachment(msg.attachment)}
-                              className="block relative group/img w-full text-left"
+                              className="block relative group/img w-full text-left cursor-pointer"
                             >
                               <img src={msg.attachment.url} alt="Attachment" className="max-w-full h-auto rounded-xl max-h-48 object-cover transition-opacity group-hover/img:opacity-90" />
                               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
@@ -712,14 +734,14 @@ export const ChatPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => msg.attachment && setPreviewAttachment(msg.attachment)}
-                              className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl transition-colors ${msg.isSelf ? 'bg-white/15 hover:bg-white/25' : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'}`}
+                              className={`w-full text-left flex items-center gap-2.5 p-2.5 rounded-xl transition-colors cursor-pointer ${msg.isSelf ? 'bg-white/15 hover:bg-white/25' : 'bg-slate-50 hover:bg-slate-100 border border-slate-200'}`}
                             >
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${msg.isSelf ? 'bg-white/20' : 'bg-indigo-50'}`}>
                                 <File size={14} className={msg.isSelf ? 'text-white' : 'text-indigo-500'} />
                               </div>
                               <div className="min-w-0">
-                                <span className="truncate text-xs font-semibold block">{msg.attachment.name}</span>
-                                <span className="text-[10px] opacity-60">{msg.attachment.size}</span>
+                                <span className="truncate text-xs font-bold block">{msg.attachment.name}</span>
+                                <span className="text-[10px] opacity-70">{msg.attachment.size}</span>
                               </div>
                             </button>
                           )}
@@ -728,29 +750,32 @@ export const ChatPage: React.FC = () => {
                       {msg.content && (
                         <div className="flex flex-col gap-2">
                           {msg.content.match(/(?:ems:\/\/meeting\/|https?:\/\/[^\/]+\/meeting\/)([a-zA-Z0-9_-]+)/) ? (
-                            <>
-                              <span>{msg.content.replace(/(?:ems:\/\/meeting\/|https?:\/\/[^\/]+\/meeting\/)([a-zA-Z0-9_-]+)/g, '').trim() || 'Meeting Invitation'}</span>
+                            <div className="bg-slate-900/90 p-4 rounded-2xl border border-indigo-500/30 text-white space-y-3 shadow-lg">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400 shrink-0">
+                                  <Video size={16} />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-extrabold text-white tracking-wide">Video Meeting Room</p>
+                                  <p className="text-[10px] text-slate-300">Click below to join the video conference</p>
+                                </div>
+                              </div>
                               <button
                                 onClick={() => {
                                   const match = msg.content.match(/(?:ems:\/\/meeting\/|https?:\/\/[^\/]+\/meeting\/)([a-zA-Z0-9_-]+)/);
                                   if (match?.[1]) navigate(`/meeting/${match[1]}`);
                                 }}
-                                className={`flex items-center justify-center gap-2 px-4 py-2 mt-1 text-sm font-bold rounded-xl transition-all shadow-sm ${
-                                  msg.isSelf
-                                    ? 'bg-white text-indigo-600 hover:bg-indigo-50 border border-transparent'
-                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-md'
-                                }`}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-extrabold rounded-xl shadow-md transition-all cursor-pointer"
                               >
-                                <Video size={16} />
-                                Join Meeting
+                                <Video size={15} /> Join Meeting Now
                               </button>
-                            </>
+                            </div>
                           ) : (
                             renderFormattedMessage(msg.content)
                           )}
                         </div>
                       )}
-                      {isTemp && <span className="ml-2 text-[10px] opacity-50 italic">Sending…</span>}
+                      {isTemp && <span className="ml-2 text-[10px] opacity-60 italic">Sending…</span>}
                     </div>
 
                     {/* Reactions */}
@@ -762,13 +787,13 @@ export const ChatPage: React.FC = () => {
                             <button
                               key={emoji}
                               onClick={() => handleToggleReaction(msg.id, emoji)}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all hover:scale-105 ${
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all hover:scale-105 cursor-pointer ${
                                 hasReacted
-                                  ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-semibold'
+                                  ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-bold'
                                   : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                               }`}
                             >
-                              {emoji} <span className="font-semibold">{userIds.length}</span>
+                              {emoji} <span className="font-bold">{userIds.length}</span>
                             </button>
                           );
                         })}
@@ -777,48 +802,48 @@ export const ChatPage: React.FC = () => {
 
                     {/* Timestamp */}
                     {showTime && (
-                      <span className={`text-[10px] text-slate-400 px-1 ${msg.isSelf ? 'text-right' : 'text-left'}`}>
+                      <span className={`text-[10px] text-slate-400 font-medium px-1 ${msg.isSelf ? 'text-right' : 'text-left'}`}>
                         {formatTime(msg.timestamp)}
                       </span>
                     )}
                   </div>
 
-                  {/* Reaction & Action Triggers */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center flex items-center gap-1">
+                  {/* Action triggers on hover */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center flex items-center gap-1 bg-white p-1 rounded-xl shadow-xs border border-slate-200 relative">
                     <button
                       onClick={() => handlePinToggle(msg.id)}
-                      className={`p-1 text-xs rounded hover:bg-slate-100 transition-all ${msg.isPinned ? 'grayscale-0' : 'grayscale opacity-40 hover:opacity-100 hover:grayscale-0'}`}
+                      className={`p-1 text-xs rounded hover:bg-slate-100 transition-all cursor-pointer ${msg.isPinned ? 'grayscale-0' : 'grayscale opacity-40 hover:opacity-100 hover:grayscale-0'}`}
                       title={msg.isPinned ? 'Unpin message' : 'Pin message'}
                     >
                       📌
                     </button>
                     <button
                       onClick={() => handleDeleteMessage(msg.id, true)}
-                      className="p-1 text-xs rounded hover:bg-slate-150 hover:text-rose-600 transition-all opacity-40 hover:opacity-100"
+                      className="p-1 text-xs rounded hover:bg-rose-50 hover:text-rose-600 transition-all opacity-40 hover:opacity-100 cursor-pointer"
                       title="Delete message"
                     >
                       🗑️
                     </button>
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowReactionPickerId(showReactionPickerId === msg.id ? null : msg.id)}
-                        className="p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
-                      >
-                        <Smile size={14} />
-                      </button>
-                      {showReactionPickerId === msg.id && (
-                        <div className={`absolute z-40 bottom-full mb-2 ${msg.isSelf ? 'right-0' : 'left-0'}`}>
-                          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden" style={{ width: '300px', height: '350px' }}>
-                            <EmojiPicker
-                              width="100%"
-                              height="100%"
-                              onEmojiClick={(e) => handleToggleReaction(msg.id, e.emoji)}
-                              skinTonesDisabled
-                            />
-                          </div>
+                    <button
+                      onClick={() => setShowReactionPickerId(showReactionPickerId === msg.id ? null : msg.id)}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+                      title="Add reaction"
+                    >
+                      <Smile size={14} />
+                    </button>
+
+                    {showReactionPickerId === msg.id && (
+                      <div className={`absolute z-40 bottom-full mb-2 ${msg.isSelf ? 'right-0' : 'left-0'}`}>
+                        <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden" style={{ width: '300px', height: '350px' }}>
+                          <EmojiPicker
+                            width="100%"
+                            height="100%"
+                            onEmojiClick={(e) => handleToggleReaction(msg.id, e.emoji)}
+                            skinTonesDisabled
+                          />
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

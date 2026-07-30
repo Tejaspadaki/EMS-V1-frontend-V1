@@ -713,7 +713,7 @@ export const DashboardPage: React.FC = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-slate-800 truncate">{act.action}</p>
-                      <p className="text-[10px] text-slate-400">{act.user} · {act.time ? new Date(act.time).toLocaleDateString() : 'Today'}</p>
+                      <p className="text-[10px] text-slate-400">{act.user} · {act.time || 'Recently'}</p>
                     </div>
                   </div>
                 ))}
@@ -725,25 +725,29 @@ export const DashboardPage: React.FC = () => {
           {adminData?.upcomingBirthdays && (
             <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
               <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Calendar size={16} className="text-pink-500" /> Upcoming Birthdays
+                <Calendar size={16} className="text-pink-500" /> Birthdays This Month
               </h3>
-              <div className="space-y-3">
-                {adminData.upcomingBirthdays.slice(0, 3).map((b: any) => (
-                  <div key={b.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 font-bold text-xs flex items-center justify-center border border-pink-100">
-                        {b.name.charAt(0)}
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {adminData.upcomingBirthdays.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic py-2">No employee birthdays this month.</p>
+                ) : (
+                  adminData.upcomingBirthdays.map((b: any) => (
+                    <div key={b.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-pink-50 text-pink-600 font-bold text-xs flex items-center justify-center border border-pink-100 shrink-0">
+                          {b.name ? b.name.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-800 truncate">{b.name}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{b.department}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">{b.name}</p>
-                        <p className="text-[10px] text-slate-400">{b.department}</p>
-                      </div>
+                      <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full shrink-0">
+                        {b.daysRemaining === 0 ? 'Today! 🎂' : b.daysRemaining > 0 ? `${b.daysRemaining}d left` : b.dateFormatted || 'This Month'}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
-                      {b.daysRemaining === 0 ? 'Today! 🎂' : `${b.daysRemaining}d left`}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}

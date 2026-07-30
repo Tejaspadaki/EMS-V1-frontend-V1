@@ -6,10 +6,11 @@ import { getInitials } from '../../utils/initials';
 import { ContributionGauge } from '../../components/analytics/ContributionGauge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
-import { Download, Fingerprint, Shield, Clock, ShieldAlert, Camera, LayoutDashboard, Settings as SettingsIcon, Mail, Briefcase, MapPin, Phone, AlertTriangle, Calendar } from 'lucide-react';
+import { Download, Fingerprint, Shield, Clock, ShieldAlert, Camera, LayoutDashboard, Settings as SettingsIcon, Mail, Briefcase, MapPin, Phone, AlertTriangle, Calendar, Star, TrendingUp, Award, User, PhoneCall, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
 import { useFaceApi } from '../../hooks/useFaceApi';
 import { enrollFace } from '../../api/attendance.api';
 import { performanceApi } from '../../api/performance.api';
+import { getMyProfile, updateMyProfile } from '../../api/profile.api';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 
@@ -33,21 +34,93 @@ export const EmployeeDetailsPage: React.FC = () => {
 
   // Face Enrollment
   const [enrollModal, setEnrollModal] = useState(false);
-  const { isLoaded: faceApiLoaded, detectFaceAndGetDescriptor } = useFaceApi();
+  const { isLoaded: faceApiLoaded, detectFaceAndGetDescriptor, captureFrameAsJpeg } = useFaceApi();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
   const [enrollStatus, setEnrollStatus] = useState<string>('');
 
   // Performance Review
   const [reviewModal, setReviewModal] = useState(false);
-  const [reviewData, setReviewData] = useState({ review_period: '', rating: 5, kpi_score: 100, feedback: '' });
+  const [reviewData, setReviewData] = useState({ review_period: 'Q1 2026', rating: 4, kpi_score: 85, feedback: '' });
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+
+  // Profile Settings
+  const [profileForm, setProfileForm] = useState({
+    phone: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    bank_name: '',
+    account_number: '',
+    ifsc_code: '',
+    skills: ''
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState('');
+
+  useEffect(() => {
+    if (activeTab === 'settings') {
+      loadProfileData();
+    }
+  }, [activeTab]);
+
+  const loadProfileData = async () => {
+    try {
+      const data = await getMyProfile();
+      if (data) {
+        setProfileForm({
+          phone: data.phone || '',
+          emergency_contact_name: data.emergency_contact_name || '',
+          emergency_contact_phone: data.emergency_contact_phone || '',
+          bank_name: data.bank_name || '',
+          account_number: data.account_number || '',
+          ifsc_code: data.ifsc_code || '',
+          skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || '')
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load profile settings', err);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setProfileSuccess('');
+    try {
+      const skillsArray = profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+      await updateMyProfile({
+        ...profileForm,
+        skills: skillsArray
+      });
+      setProfileSuccess('Profile settings updated successfully!');
+      setTimeout(() => setProfileSuccess(''), 4000);
+      loadData();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to update profile settings');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   const loadData = async () => {
     if (!id) return;
-    const data = await getEmployeeDetails(id);
-    setEmployee(data);
-    setLoading(false);
+    try {
+      const data = await getEmployeeDetails(id);
+      setEmployee(data);
+      try {
+        const allRev = await performanceApi.getAllReviews();
+        const filtered = (allRev || []).filter((r: any) => String(r.user_id) === String(id));
+        setReviews(filtered);
+      } catch (err) {
+        console.error('Failed to load user reviews', err);
+      }
+    } catch (err) {
+      console.error('Failed to load employee details', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -63,13 +136,14 @@ export const EmployeeDetailsPage: React.FC = () => {
         ...reviewData
       });
       setReviewModal(false);
-      setReviewData({ review_period: '', rating: 5, kpi_score: 100, feedback: '' });
-      loadData(); // refresh data just in case
-    } catch (err) {
+      setReviewData({ review_period: 'Q1 2026', rating: 4, kpi_score: 85, feedback: '' });
+      await loadData();
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to submit review');
+      alert(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setReviewSubmitting(false);
     }
-    setReviewSubmitting(false);
   };
 
   const handleGenerate = async () => {
@@ -148,19 +222,7 @@ export const EmployeeDetailsPage: React.FC = () => {
       }
 
       setEnrollStatus('Saving face data...');
-      let capturedImage: string | undefined = undefined;
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth || 640;
-        canvas.height = videoRef.current.videoHeight || 480;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-          capturedImage = canvas.toDataURL('image/jpeg', 0.8);
-        }
-      } catch (e) {
-        console.warn('Could not capture frame image:', e);
-      }
+      const capturedImage = captureFrameAsJpeg(videoRef.current, 0.5, 320) || undefined;
 
       await enrollFace({ 
         employeeId: id, 
@@ -189,7 +251,7 @@ export const EmployeeDetailsPage: React.FC = () => {
     return <div className="p-8 text-center text-gray-500 font-semibold text-lg">Employee not found.</div>;
   }
 
-  const isSuperAdmin = role === 'Super Admin';
+  const isSuperAdmin = ['SUPER_ADMIN', 'Super Admin', 'HR', 'DEPT_HEAD', 'Dept Head', 'CEO', 'CTO', 'Executive', 'Admin', 'HR / Admin Executive'].includes(role || '');
   const hasRoleCard = employee.roleCardGenerated;
 
   const tabStyles = (tabName: string) => `
@@ -205,45 +267,57 @@ export const EmployeeDetailsPage: React.FC = () => {
       {/* Premium Hero Header */}
       <div className="relative bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden mt-4">
         {/* Cover Photo / Banner */}
-        <div className="h-40 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+        {/* Header Background Banner */}
+        <div className="h-36 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
-          {/* Decorative circles */}
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-white/20 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full bg-indigo-900/20 blur-3xl"></div>
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-white/20 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-indigo-900/20 blur-3xl"></div>
         </div>
         
         <div className="px-8 pb-8 flex flex-col md:flex-row items-center md:items-end justify-between gap-6 -mt-16 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-32 h-32 bg-gradient-to-br from-indigo-100 to-white text-indigo-600 rounded-full flex items-center justify-center text-4xl font-extrabold shadow-xl border-4 border-white/80 ring-4 ring-indigo-500/10 shrink-0">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-white text-indigo-600 rounded-full flex items-center justify-center text-3xl sm:text-4xl font-black shadow-2xl border-4 border-white ring-4 ring-indigo-500/10 shrink-0">
               {getInitials(employee.name)}
             </div>
-            <div className="text-center md:text-left pt-16 md:pt-0">
-              <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 tracking-tight">
-                {employee.name}
-              </h1>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3 text-sm font-semibold">
-                <span className="px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100 shadow-sm flex items-center gap-2">
-                  <Briefcase size={16} /> {employee.role}
+            <div className="text-center md:text-left pt-3 md:pt-16">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-1.5">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  {employee.name}
+                </h1>
+                <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold rounded-full uppercase tracking-wider">
+                  Active Profile
                 </span>
-                <span className="px-4 py-1.5 bg-purple-50 text-purple-700 rounded-full border border-purple-100 shadow-sm">
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs font-semibold">
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 font-bold flex items-center gap-1.5">
+                  <Briefcase size={14} /> {employee.role}
+                </span>
+                <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-xl border border-purple-100 font-bold">
                   {employee.department}
+                </span>
+                <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-xl border border-slate-200 font-mono text-[11px]">
+                  ID: {employee.id}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="hidden md:flex gap-4 items-center mb-2">
+          <div className="hidden md:flex gap-3 items-center mb-2">
             {employee.id === user?.id && (
-              <Button variant="secondary" className="shadow-md bg-white border border-gray-100 hover:border-indigo-200 transition-all text-gray-700" onClick={() => setActiveTab('settings')}>
-                <SettingsIcon size={16} className="mr-2" /> Edit Profile
-              </Button>
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-600 font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                <SettingsIcon size={16} /> Edit Profile
+              </button>
             )}
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-end border-b-2 border-indigo-50/50 pt-2 px-4 gap-1">
+      <div className="flex items-center border-b border-slate-200/80 pt-2 px-4 gap-2 overflow-x-auto">
         <button onClick={() => setActiveTab('overview')} className={tabStyles('overview')}>
           <LayoutDashboard size={18} /> Overview
         </button>
@@ -264,141 +338,222 @@ export const EmployeeDetailsPage: React.FC = () => {
       </div>
 
       {/* Tab Content Area */}
-      <div className="bg-white/60 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 min-h-[400px] transition-all">
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 sm:p-8 min-h-[420px] transition-all">
         
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-lg font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-                  <div className="p-1.5 bg-indigo-100 rounded-lg text-indigo-600"><SettingsIcon size={18} /></div>
-                  Personal Information
-                </h3>
-                <div className="bg-white/80 p-6 rounded-2xl border border-white/60 shadow-sm space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-500 shrink-0"><Mail size={18} /></div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Email Address</p>
-                      <p className="text-sm font-semibold text-gray-800">{employee.email}</p>
-                    </div>
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 animate-fade-in">
+            
+            {/* Personal Information (5 Cols) */}
+            <div className="xl:col-span-5 space-y-4">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <div className="p-1.5 bg-indigo-100 rounded-lg text-indigo-600"><User size={18} /></div>
+                Personal Information
+              </h3>
+              
+              <div className="bg-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100 shrink-0"><Mail size={18} /></div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Email Address</p>
+                    <p className="text-sm font-bold text-slate-800">{employee.email}</p>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-500 shrink-0"><Phone size={18} /></div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Phone Number</p>
-                      <p className="text-sm font-semibold text-gray-800">+1 (555) 000-0000 <span className="text-xs font-normal text-gray-400 italic">(Mock)</span></p>
-                    </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600 border border-emerald-100 shrink-0"><Phone size={18} /></div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Phone Number</p>
+                    <p className="text-sm font-bold text-slate-800">{employee.phone && employee.phone !== 'N/A' ? employee.phone : 'Not Provided'}</p>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="p-2.5 bg-rose-50 rounded-xl text-rose-500 shrink-0"><MapPin size={18} /></div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Location</p>
-                      <p className="text-sm font-semibold text-gray-800">Headquarters, NY <span className="text-xs font-normal text-gray-400 italic">(Mock)</span></p>
-                    </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-purple-50 rounded-xl text-purple-600 border border-purple-100 shrink-0"><Building2 size={18} /></div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Department</p>
+                    <p className="text-sm font-bold text-slate-800">{employee.department}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-extrabold text-gray-900 mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+            {/* Performance & Contribution Metrics (7 Cols) */}
+            <div className="xl:col-span-7 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <div className="p-1.5 bg-purple-100 rounded-lg text-purple-600"><LayoutDashboard size={18} /></div>
-                  Performance Metrics
-                </div>
+                  Performance & Contribution Metrics
+                </h3>
                 {['SUPER_ADMIN', 'HR', 'DEPT_HEAD', 'TEAM_LEAD', 'CEO', 'CTO', 'HR / Admin Executive', 'Executive', 'Super Admin'].includes(role || '') && (
-                  <Button size="sm" onClick={() => setReviewModal(true)}>Add Review</Button>
+                  <button 
+                    onClick={() => setReviewModal(true)} 
+                    className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl px-3.5 py-1.5 shadow-sm transition-colors cursor-pointer"
+                  >
+                    + Add Review
+                  </button>
                 )}
-              </h3>
-              <div className="bg-white/80 p-6 rounded-2xl border border-white/60 shadow-sm h-64 flex items-center justify-center">
-                <ContributionGauge score={employee.contributionScore} isGenerated={hasRoleCard} />
+              </div>
+              
+              <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center gap-6">
+                
+                {/* Contribution Gauge */}
+                <div className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-slate-200/80 w-full sm:w-48 shrink-0 shadow-2xs">
+                  <ContributionGauge score={employee.contributionScore} isGenerated={hasRoleCard} />
+                  <p className="text-[11px] font-bold text-slate-500 mt-2 text-center">Task & Role Completion</p>
+                </div>
+
+                {/* Performance Review Appraisal */}
+                <div className="flex-1 w-full space-y-3">
+                  {reviews.length > 0 ? (
+                    (() => {
+                      const latest = reviews[0];
+                      return (
+                        <div className="space-y-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-1 text-amber-500">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star 
+                                  key={i} 
+                                  size={16} 
+                                  fill={i < Math.floor(latest.rating) ? 'currentColor' : 'none'} 
+                                  className={i < Math.floor(latest.rating) ? '' : 'text-slate-200'} 
+                                />
+                              ))}
+                              <span className="ml-1.5 text-xs font-black text-slate-800">{latest.rating}.0 / 5.0</span>
+                            </div>
+                            <span className="px-3 py-1 bg-indigo-50 text-indigo-700 font-bold text-[11px] rounded-full border border-indigo-100">
+                              {latest.review_period}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-xs font-semibold text-slate-600 flex-wrap">
+                            {latest.kpi_score != null && (
+                              <div className="flex items-center gap-1.5">
+                                <TrendingUp size={14} className="text-emerald-600" />
+                                <span>KPI Score: <strong className="text-emerald-700 font-extrabold">{latest.kpi_score}%</strong></span>
+                              </div>
+                            )}
+                            {latest.reviewer_name && (
+                              <div>Reviewed by: <strong className="text-slate-800">{latest.reviewer_name}</strong></div>
+                            )}
+                          </div>
+
+                          {latest.feedback && (
+                            <p className="text-xs text-slate-600 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
+                              "{latest.feedback}"
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-2xl border border-dashed border-slate-300">
+                      <Award size={32} className="text-slate-300 mb-2" />
+                      <p className="text-xs font-bold text-slate-700">No Appraisals Recorded</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Click "+ Add Review" above to evaluate this employee.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
           </div>
         )}
 
         {/* ROLE CARD TAB */}
         {activeTab === 'rolecard' && (
-          <div className="animate-fade-in max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+          <div className="animate-fade-in max-w-4xl mx-auto space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-xl font-extrabold text-gray-900">Digital Role Card</h3>
-                <p className="text-sm text-gray-500 mt-1">Manage physical and digital access credentials.</p>
+                <h3 className="text-xl font-black text-slate-900">Digital Role Card</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Physical and digital QR access profile for corporate credentials.</p>
               </div>
-              <div className="flex gap-3">
+              
+              <div className="flex items-center gap-2.5 flex-wrap">
                 {hasRoleCard && (
-                  <div className="flex items-center gap-2">
-                    {exportError && <span className="text-xs text-[#C62828] font-bold px-3 bg-[#FFEBEE] rounded-lg py-2 animate-pulse shadow-sm border border-red-100">{exportError}</span>}
-                    <Button 
-                      variant="secondary" 
-                      onClick={handleExportPDF} 
-                      disabled={exportLoading}
-                      className="bg-white shadow-sm border border-gray-200 text-gray-700 hover:border-indigo-300"
-                    >
-                      {exportLoading ? <div className="w-4 h-4 rounded-full border-2 border-t-indigo-600 border-r-indigo-600 border-b-transparent border-l-transparent animate-spin mr-2" /> : <Download size={16} className="mr-2 text-indigo-600" />}
-                      Export PDF
-                    </Button>
-                  </div>
+                  <button 
+                    onClick={handleExportPDF} 
+                    disabled={exportLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-300 text-slate-700 font-bold text-xs rounded-xl shadow-2xs transition-all cursor-pointer"
+                  >
+                    {exportLoading ? <div className="w-4 h-4 rounded-full border-2 border-t-indigo-600 border-r-indigo-600 border-b-transparent border-l-transparent animate-spin" /> : <Download size={15} className="text-indigo-600" />}
+                    Export PDF
+                  </button>
                 )}
                 
                 {(isSuperAdmin || role === 'HR') && (
-                  <Button variant="outline" onClick={() => { setEnrollModal(true); startCamera(); }} className="border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
-                    <Camera size={16} className="mr-2" /> Enroll Face
-                  </Button>
+                  <button 
+                    onClick={() => { setEnrollModal(true); startCamera(); }} 
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                  >
+                    <Camera size={15} /> Enroll Face
+                  </button>
                 )}
                 
                 {isSuperAdmin && (
                   hasRoleCard ? (
-                    <Button variant="ghost" onClick={() => setRegenerateModal(true)} className="text-gray-500 hover:bg-gray-100">
+                    <button 
+                      onClick={() => setRegenerateModal(true)} 
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                    >
                       Regenerate
-                    </Button>
+                    </button>
                   ) : (
-                    <Button variant="primary" onClick={() => setGenerateModal(true)} className="bg-indigo-600 hover:bg-indigo-700 shadow-md">
-                      Generate Role Card
-                    </Button>
+                    <button 
+                      onClick={() => setGenerateModal(true)} 
+                      className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                    >
+                      <Fingerprint size={15} /> Generate Role Card
+                    </button>
                   )
                 )}
               </div>
             </div>
 
             {hasRoleCard ? (
-              <div className="bg-gradient-to-br from-indigo-50/50 to-white border border-indigo-100 rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center text-center max-w-lg mx-auto relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="w-32 h-32 bg-white border-[6px] border-white rounded-2xl flex items-center justify-center mb-8 shadow-xl rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden ring-1 ring-black/5">
+              <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-10 text-white shadow-2xl flex flex-col items-center text-center max-w-md mx-auto relative overflow-hidden border border-slate-800 group">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+                <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-extrabold uppercase tracking-widest text-indigo-300 border border-white/15">
+                  Verified Card
+                </div>
+
+                <div className="w-36 h-36 bg-white p-3 rounded-2xl flex items-center justify-center my-6 shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500">
                   {employee.roleCardQrCodeUrl ? (
-                    <img src={employee.roleCardQrCodeUrl} alt="QR Code" className="w-full h-full object-cover" />
+                    <img src={employee.roleCardQrCodeUrl} alt="QR Access" className="w-full h-full object-contain" />
                   ) : (
-                    <Fingerprint size={48} className="text-indigo-600 opacity-20" />
+                    <Fingerprint size={54} className="text-indigo-600 opacity-20" />
                   )}
                 </div>
                 
-                <h4 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">{employee.name}</h4>
-                <span className="px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-black rounded-full uppercase tracking-widest mb-6 shadow-md shadow-indigo-200">
-                  {employee.role}
-                </span>
+                <h4 className="text-2xl font-black tracking-tight">{employee.name}</h4>
+                <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mt-1 mb-4">{employee.role}</p>
+
+                <div className="w-full h-px bg-white/10 my-2"></div>
                 
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-4"></div>
-                
-                <p className="text-xs font-mono text-gray-400 tracking-[0.2em] uppercase font-bold">
-                  ID: {employee.id}
-                </p>
+                <div className="flex items-center justify-between w-full text-xs text-slate-400 font-mono pt-2">
+                  <span>DEPT: {employee.department}</span>
+                  <span>ID: {employee.id}</span>
+                </div>
               </div>
             ) : (
-              <div className="py-20 flex flex-col items-center justify-center text-center bg-gray-50/50 rounded-3xl border border-dashed border-gray-300">
-                <div className="w-20 h-20 bg-white shadow-sm rounded-full flex items-center justify-center mb-6">
-                  <ShieldAlert size={36} className="text-gray-300" />
+              <div className="py-16 flex flex-col items-center justify-center text-center bg-slate-50/60 rounded-3xl border border-dashed border-slate-300 p-8 space-y-4">
+                <div className="w-20 h-20 bg-indigo-50 border border-indigo-100 rounded-3xl flex items-center justify-center shadow-xs">
+                  <Fingerprint size={38} className="text-indigo-600" />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900">Role Card not generated</h4>
-                <p className="text-gray-500 text-sm mt-2 max-w-sm">
-                  This employee's digital profile and QR access have not been initialized yet.
-                </p>
+                <div>
+                  <h4 className="text-lg font-extrabold text-slate-900">Digital Role Card Not Generated</h4>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Initialize this employee's digital credentials to enable QR code scanning, access verification, and security tracking.
+                  </p>
+                </div>
                 {isSuperAdmin && (
-                  <Button variant="primary" onClick={() => setGenerateModal(true)} className="mt-8 shadow-md">
-                    Generate Now
-                  </Button>
+                  <button 
+                    onClick={() => setGenerateModal(true)} 
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                  >
+                    Generate Role Card Now
+                  </button>
                 )}
               </div>
             )}
@@ -407,27 +562,33 @@ export const EmployeeDetailsPage: React.FC = () => {
 
         {/* AUDIT TAB */}
         {activeTab === 'audit' && (
-          <div className="animate-fade-in max-w-4xl mx-auto space-y-4">
-            <h3 className="text-xl font-extrabold text-gray-900 mb-6 flex items-center gap-2">
-              <Shield size={20} className="text-indigo-500" />
+          <div className="animate-fade-in max-w-4xl mx-auto space-y-6">
+            <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <Shield size={20} className="text-indigo-600" />
               Security Audit Trail
             </h3>
             
-            <div className="bg-white/80 rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+            <div className="bg-slate-50/80 rounded-2xl border border-slate-200/80 overflow-hidden">
               {employee.auditLog.length === 0 ? (
-                <div className="p-12 text-center text-sm text-gray-500 font-medium">No security events found.</div>
+                <div className="p-12 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">Account Status: Secure & Compliant</h4>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">No security anomalies or permission breaches logged for this employee profile.</p>
+                </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-slate-200/60">
                   {employee.auditLog.map(log => (
-                    <div key={log.id} className="p-5 flex items-start gap-5 hover:bg-gray-50/50 transition-colors">
-                      <div className="mt-0.5 bg-indigo-50 p-2.5 rounded-xl text-indigo-500 shadow-sm border border-indigo-100/50">
+                    <div key={log.id} className="p-5 flex items-start gap-4 hover:bg-white transition-colors">
+                      <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100 shrink-0">
                         <Clock size={16} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">{log.action}</p>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mt-1.5">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded-md text-gray-600">By {log.actor}</span>
-                          <span className="text-gray-300">•</span>
+                        <p className="text-sm font-bold text-slate-900">{log.action}</p>
+                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mt-1">
+                          <span className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-700">By {log.actor}</span>
+                          <span>•</span>
                           <span>{new Date(log.timestamp).toLocaleString()}</span>
                         </div>
                       </div>
@@ -439,52 +600,42 @@ export const EmployeeDetailsPage: React.FC = () => {
           </div>
         )}
 
-        {/* SETTINGS TAB */}
-        {activeTab === 'settings' && employee.id === user?.id && (
-          <div className="animate-fade-in max-w-2xl mx-auto">
-            <h3 className="text-xl font-extrabold text-gray-900 mb-6">Profile Settings</h3>
-            
-            <div className="bg-indigo-50/50 border border-indigo-100 p-8 rounded-3xl text-center shadow-inner">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm text-indigo-500">
-                <SettingsIcon size={32} />
-              </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-2">Settings are coming soon</h4>
-              <p className="text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
-                You will soon be able to update your phone number, emergency contacts, passwords, and notification preferences from this panel.
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* ATTENDANCE TAB */}
         {activeTab === 'attendance' && (
-          <div className="animate-fade-in max-w-3xl mx-auto">
-            <h3 className="text-xl font-extrabold text-gray-900 mb-6 flex items-center gap-2">
-              <Calendar size={20} className="text-indigo-500" />
-              Attendance Log
+          <div className="animate-fade-in max-w-4xl mx-auto space-y-6">
+            <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <Calendar size={20} className="text-indigo-600" />
+              Attendance Log History
             </h3>
             
-            <div className="bg-white/80 rounded-2xl border border-white/60 shadow-sm overflow-hidden">
+            <div className="bg-slate-50/80 rounded-2xl border border-slate-200/80 overflow-hidden">
               {(!employee.attendances || employee.attendances.length === 0) ? (
-                <div className="p-12 text-center text-sm text-gray-500 font-medium">No attendance records found.</div>
+                <div className="p-12 text-center text-xs font-semibold text-slate-400">No attendance logs available for this employee yet.</div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-slate-200/60">
                   {employee.attendances.map(log => (
-                    <div key={log.id} className="p-5 flex items-start gap-5 hover:bg-gray-50/50 transition-colors">
-                      <div className={`mt-0.5 p-2.5 rounded-xl shadow-sm border ${log.type === 'check_in' ? 'bg-emerald-50 text-emerald-500 border-emerald-100/50' : 'bg-rose-50 text-rose-500 border-rose-100/50'}`}>
-                        {log.type === 'check_in' ? <Clock size={16} /> : <Calendar size={16} />}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                          {log.type.replace('_', ' ')}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mt-1.5">
-                          <span className="text-gray-400">Date:</span>
-                          <span className="bg-gray-100 px-2 py-0.5 rounded-md text-gray-600">{new Date(log.date).toLocaleDateString()}</span>
-                          <span className="text-gray-300">•</span>
-                          <span className="text-gray-400">Time:</span>
-                          <span>{new Date(log.recordedAt).toLocaleTimeString()}</span>
+                    <div key={log.id} className="p-4 sm:p-5 flex items-center justify-between hover:bg-white transition-colors gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-2.5 rounded-xl border shrink-0 ${log.type === 'check_in' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                          {log.type === 'check_in' ? <Clock size={18} /> : <Calendar size={18} />}
                         </div>
+                        <div>
+                          <p className="text-sm font-extrabold text-slate-900 uppercase tracking-wide">
+                            {log.type.replace('_', ' ')}
+                          </p>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            {new Date(log.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-700 shadow-2xs">
+                          {new Date(log.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-extrabold uppercase">
+                          Logged
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -493,6 +644,169 @@ export const EmployeeDetailsPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* SETTINGS TAB */}
+        {activeTab === 'settings' && (
+          <div className="animate-fade-in max-w-3xl mx-auto space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-2xl font-extrabold text-slate-900">Profile Settings</h3>
+                <p className="text-xs text-slate-500 mt-1">Manage contact information, emergency contacts, and banking details.</p>
+              </div>
+            </div>
+
+            {profileSuccess && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-sm font-semibold flex items-center gap-3 animate-fade-in shadow-xs">
+                <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                <span>{profileSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProfile} className="space-y-6">
+              {/* Personal Contact Info */}
+              <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 space-y-4">
+                <h4 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200/60 pb-3">
+                  <User size={18} className="text-indigo-600" />
+                  Personal & Contact Information
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name</label>
+                    <input type="text" value={employee.name} disabled className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-500 cursor-not-allowed" />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address</label>
+                    <input type="email" value={employee.email} disabled className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-500 cursor-not-allowed" />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phone Number</label>
+                    <input
+                      type="text"
+                      value={profileForm.phone}
+                      onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                      placeholder="e.g. +1 (555) 000-0000"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Department</label>
+                    <input type="text" value={employee.department} disabled className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-500 cursor-not-allowed" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 space-y-4">
+                <h4 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200/60 pb-3">
+                  <PhoneCall size={18} className="text-rose-500" />
+                  Emergency Contact Details
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Emergency Contact Name</label>
+                    <input
+                      type="text"
+                      value={profileForm.emergency_contact_name}
+                      onChange={e => setProfileForm({ ...profileForm, emergency_contact_name: e.target.value })}
+                      placeholder="e.g. Spouse / Parent / Relative"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Emergency Contact Phone</label>
+                    <input
+                      type="text"
+                      value={profileForm.emergency_contact_phone}
+                      onChange={e => setProfileForm({ ...profileForm, emergency_contact_phone: e.target.value })}
+                      placeholder="e.g. +1 (555) 999-8888"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Banking & Payroll */}
+              <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 space-y-4">
+                <h4 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200/60 pb-3">
+                  <CreditCard size={18} className="text-emerald-600" />
+                  Banking & Payroll Credentials
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Bank Name</label>
+                    <input
+                      type="text"
+                      value={profileForm.bank_name}
+                      onChange={e => setProfileForm({ ...profileForm, bank_name: e.target.value })}
+                      placeholder="e.g. Chase Bank / HDFC"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Account Number</label>
+                    <input
+                      type="text"
+                      value={profileForm.account_number}
+                      onChange={e => setProfileForm({ ...profileForm, account_number: e.target.value })}
+                      placeholder="Account Number"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">IFSC / Routing Code</label>
+                    <input
+                      type="text"
+                      value={profileForm.ifsc_code}
+                      onChange={e => setProfileForm({ ...profileForm, ifsc_code: e.target.value })}
+                      placeholder="IFSC / Swift Code"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Skills & Specialization */}
+              <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-200/80 space-y-4">
+                <h4 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-200/60 pb-3">
+                  <Building2 size={18} className="text-purple-600" />
+                  Skills & Specializations
+                </h4>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Comma-Separated Skills</label>
+                  <input
+                    type="text"
+                    value={profileForm.skills}
+                    onChange={e => setProfileForm({ ...profileForm, skills: e.target.value })}
+                    placeholder="e.g. React, Node.js, UI/UX Design, Project Management"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <CheckCircle2 size={18} />
+                  {profileSaving ? 'Saving Changes...' : 'Save Profile Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
       </div>
 
       {/* Generation Modals */}

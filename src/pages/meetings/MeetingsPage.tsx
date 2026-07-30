@@ -367,23 +367,27 @@ export const MeetingsPage: React.FC = () => {
                   {/* Participants Row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      {meeting.participants.slice(0, 4).map((p, idx) => (
-                        <div
-                          key={p.userId}
-                          className={`w-7 h-7 rounded-xl border-2 border-white flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-br ${getAvatarColor(p.userId)} ${idx > 0 ? '-ml-2' : ''}`}
-                          title={`Participant ${idx + 1}`}
-                          style={{ zIndex: meeting.participants.length - idx }}
-                        >
-                          {getInitials(p.userId)}
-                        </div>
-                      ))}
+                      {meeting.participants.slice(0, 4).map((p, idx) => {
+                        const pUser = users.find(u => u.id?.toString() === p.userId?.toString());
+                        const pName = pUser?.name || 'User';
+                        return (
+                          <div
+                            key={p.userId}
+                            className={`w-7 h-7 rounded-xl border-2 border-white flex items-center justify-center text-[9px] font-extrabold text-white bg-gradient-to-br ${getAvatarColor(pName)} ${idx > 0 ? '-ml-2' : ''} shadow-2xs`}
+                            title={pName}
+                            style={{ zIndex: meeting.participants.length - idx }}
+                          >
+                            {getInitials(pName)}
+                          </div>
+                        );
+                      })}
                       {meeting.participants.length > 4 && (
                         <div className="-ml-2 w-7 h-7 rounded-xl border-2 border-white bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600">
                           +{meeting.participants.length - 4}
                         </div>
                       )}
                     </div>
-                    <span className="text-xs text-slate-400">Org: <span className="font-semibold text-slate-600">{meeting.organizer.name.split(' ')[0]}</span></span>
+                    <span className="text-xs text-slate-400">Org: <span className="font-bold text-slate-700">{meeting.organizer?.name ? meeting.organizer.name.split(' ')[0] : 'Host'}</span></span>
                   </div>
 
                   {/* Join Link & Calendar */}

@@ -12,7 +12,7 @@ interface FaceEnrollmentModalProps {
 }
 
 export const FaceEnrollmentModal: React.FC<FaceEnrollmentModalProps> = ({ isOpen, onClose, employeeId, onSuccess }) => {
-  const { isLoaded: faceApiLoaded, detectFaceAndGetDescriptor } = useFaceApi();
+  const { isLoaded: faceApiLoaded, detectFaceAndGetDescriptor, captureFrameAsJpeg } = useFaceApi();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,19 +58,7 @@ export const FaceEnrollmentModal: React.FC<FaceEnrollmentModalProps> = ({ isOpen
         return;
       }
 
-      let capturedImage: string | undefined = undefined;
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth || 640;
-        canvas.height = videoRef.current.videoHeight || 480;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-          capturedImage = canvas.toDataURL('image/jpeg', 0.8);
-        }
-      } catch (e) {
-        console.warn('Could not capture frame image:', e);
-      }
+      const capturedImage = captureFrameAsJpeg(videoRef.current, 0.5, 320) || undefined;
 
       await enrollFace({ 
         descriptors: { front: descriptor },
