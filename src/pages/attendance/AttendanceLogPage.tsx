@@ -86,7 +86,7 @@ export const AttendanceLogPage: React.FC = () => {
             Attendance Log
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Review your face check-in history and biometric login events.
+            Review your face check-in history and face login events.
           </p>
         </div>
         <div>
