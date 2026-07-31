@@ -117,12 +117,12 @@ export const OtpInput: React.FC<OtpInputProps> = ({
           disabled={disabled}
           aria-label={`Digit ${index + 1} of ${length}`}
           className={`
-            w-11 h-12 text-center font-mono font-bold text-xl rounded-xl border transition-all outline-none duration-200
+            w-11 h-13 sm:w-12 sm:h-14 text-center font-mono font-bold text-2xl rounded-2xl border transition-all duration-200 outline-none
             ${hasError 
-              ? 'border-red-400 bg-red-50 text-red-600 focus:ring-2 focus:ring-red-100' 
+              ? 'border-red-500/80 bg-red-950/20 text-red-300 focus:ring-2 focus:ring-red-500/50 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
               : digits[index]
-                ? 'border-indigo-500 bg-indigo-50/50 text-indigo-700 focus:ring-2 focus:ring-indigo-100'
-                : 'border-slate-200 bg-slate-50 text-slate-900 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 hover:border-slate-300'
+                ? 'border-indigo-500/80 bg-[#1C2438] text-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/50 focus:shadow-[0_0_20px_rgba(99,102,241,0.45)]'
+                : 'border-slate-700/70 bg-[#141A28] text-white hover:border-slate-600 focus:border-indigo-500 focus:bg-[#1C2438] focus:ring-2 focus:ring-indigo-500/50 focus:shadow-[0_0_20px_rgba(99,102,241,0.45)]'
             }
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `.trim()}

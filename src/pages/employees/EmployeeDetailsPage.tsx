@@ -512,28 +512,34 @@ export const EmployeeDetailsPage: React.FC = () => {
             </div>
 
             {hasRoleCard ? (
-              <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 rounded-3xl p-8 sm:p-10 text-white shadow-2xl flex flex-col items-center text-center max-w-md mx-auto relative overflow-hidden border border-slate-800 group">
+              <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-2xl flex flex-col items-center text-center max-w-md mx-auto relative overflow-hidden border border-slate-800 group">
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-                <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-extrabold uppercase tracking-widest text-indigo-300 border border-white/15">
-                  Verified Card
+                
+                <div className="w-full flex items-center justify-between text-xs font-bold text-slate-400 border-b border-white/10 pb-3 mb-4">
+                  <span className="flex items-center gap-1.5 text-indigo-400 tracking-wider font-extrabold text-[11px]">
+                    <Fingerprint size={16} /> CORPORATE DIGITAL PASS
+                  </span>
+                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
+                    VERIFIED CARD
+                  </span>
                 </div>
 
-                <div className="w-36 h-36 bg-white p-3 rounded-2xl flex items-center justify-center my-6 shadow-2xl rotate-2 group-hover:rotate-0 transition-transform duration-500">
+                <div className="w-44 h-44 bg-white p-3 rounded-2xl flex items-center justify-center my-4 shadow-2xl border-4 border-white/20 group-hover:scale-105 transition-transform duration-300">
                   {employee.roleCardQrCodeUrl ? (
-                    <img src={employee.roleCardQrCodeUrl} alt="QR Access" className="w-full h-full object-contain" />
+                    <img src={employee.roleCardQrCodeUrl} alt="QR Access" className="w-full h-full object-contain rounded-lg" />
                   ) : (
                     <Fingerprint size={54} className="text-indigo-600 opacity-20" />
                   )}
                 </div>
                 
-                <h4 className="text-2xl font-black tracking-tight">{employee.name}</h4>
+                <h4 className="text-2xl font-black tracking-tight text-white mt-2">{employee.name}</h4>
                 <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest mt-1 mb-4">{employee.role}</p>
 
                 <div className="w-full h-px bg-white/10 my-2"></div>
                 
                 <div className="flex items-center justify-between w-full text-xs text-slate-400 font-mono pt-2">
                   <span>DEPT: {employee.department}</span>
-                  <span>ID: {employee.id}</span>
+                  <span className="bg-white/10 px-2.5 py-1 rounded-lg text-slate-300 font-bold">ID: {employee.id}</span>
                 </div>
               </div>
             ) : (
