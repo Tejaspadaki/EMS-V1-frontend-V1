@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles, Monitor, Terminal } from 'lucide-react';
+import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles, Monitor, Terminal, Apple } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
 
 interface AppUpdaterModalProps {
@@ -23,10 +23,16 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
   const [checking, setChecking] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState<boolean>(false);
 
-  // Platform selection for downloads: 'windows' | 'linux'
-  const isLinuxUser = typeof navigator !== 'undefined' && /linux/i.test(navigator.userAgent);
-  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux'>(isLinuxUser ? 'linux' : 'windows');
+  // Platform selection for downloads: 'windows' | 'linux' | 'mac'
+  const getInitialPlatform = (): 'windows' | 'linux' | 'mac' => {
+    if (typeof navigator === 'undefined') return 'windows';
+    const ua = navigator.userAgent;
+    if (/mac|darwin/i.test(ua)) return 'mac';
+    if (/linux/i.test(ua)) return 'linux';
+    return 'windows';
+  };
 
+  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux' | 'mac'>(getInitialPlatform());
   const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
   useEffect(() => {
@@ -77,26 +83,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     }, 200);
   };
 
-  const handleCheckForUpdates = async () => {
-    if (isElectron && window.electronAPI) {
-      setChecking(true);
-      setStatus('checking');
-      setErrorMessage('');
-      try {
-        const res = await window.electronAPI.checkForUpdates();
-        if (!res.success && res.error) {
-          setStatus('error');
-          setErrorMessage(res.error);
-          setChecking(false);
-        }
-      } catch (err: any) {
-        setStatus('error');
-        setErrorMessage(err.message || 'Unable to check for updates');
-        setChecking(false);
-      }
-    }
-  };
-
   const handleRestartNow = () => {
     if (isElectron && window.electronAPI) {
       window.electronAPI.quitAndInstall();
@@ -105,7 +91,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     }
   };
 
-  // Base download paths for desktop application installers
+  // Base download paths for desktop application installers across platforms
   const downloadLinks = {
     windows: [
       {
@@ -152,6 +138,29 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
         file: `Employee Management System-${targetVersion}.x86_64.rpm`,
         path: `/updates/Linux/Employee%20Management%20System-${targetVersion}.x86_64.rpm`
       }
+    ],
+    mac: [
+      {
+        name: 'DMG Disk Image (.dmg)',
+        badge: 'Universal Mac',
+        desc: 'Standard macOS installer for Intel & Apple Silicon (M1/M2/M3)',
+        file: `Employee Management System-${targetVersion}.dmg`,
+        path: `/updates/macOS/Employee%20Management%20System-${targetVersion}.dmg`
+      },
+      {
+        name: 'ZIP Archive (.zip)',
+        badge: 'Portable App',
+        desc: 'Compressed .app bundle for direct drag-and-drop',
+        file: `Employee Management System-${targetVersion}-mac.zip`,
+        path: `/updates/macOS/Employee%20Management%20System-${targetVersion}-mac.zip`
+      },
+      {
+        name: 'PKG Installer (.pkg)',
+        badge: 'System Package',
+        desc: 'Standard macOS system package installer',
+        file: `Employee Management System-${targetVersion}.pkg`,
+        path: `/updates/macOS/Employee%20Management%20System-${targetVersion}.pkg`
+      }
     ]
   };
 
@@ -177,20 +186,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
           from { opacity: 1; transform: scale(1) translateY(0); }
           to { opacity: 0; transform: scale(0.92) translateY(12px); }
         }
-        @keyframes updaterBadgePulse {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(0, 128, 255, 0.4), 0 8px 20px rgba(0, 128, 255, 0.3);
-            transform: scale(1);
-          }
-          50% {
-            box-shadow: 0 0 0 10px rgba(0, 128, 255, 0), 0 12px 28px rgba(0, 128, 255, 0.45);
-            transform: scale(1.03);
-          }
-        }
-        @keyframes updaterFloatGentle {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-4px); }
-        }
       `}</style>
 
       {/* Backdrop overlay */}
@@ -211,7 +206,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
               ? 'updaterModalPopOut 0.2s ease-in forwards' 
               : 'updaterModalPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
-          className="bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 max-w-[500px] w-full overflow-hidden transition-all relative"
+          className="bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 max-w-[540px] w-full overflow-hidden transition-all relative"
         >
           
           {/* Header Bar */}
@@ -236,29 +231,40 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
             <div className="flex bg-slate-100 p-1 rounded-xl">
               <button
                 onClick={() => setSelectedPlatform('windows')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
                   selectedPlatform === 'windows'
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Monitor size={16} />
-                Windows Apps
+                <Monitor size={15} />
+                Windows
               </button>
               <button
                 onClick={() => setSelectedPlatform('linux')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
                   selectedPlatform === 'linux'
                     ? 'bg-white text-indigo-600 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Terminal size={16} />
-                Linux Apps (AppImage / DEB / RPM)
+                <Terminal size={15} />
+                Linux
+              </button>
+              <button
+                onClick={() => setSelectedPlatform('mac')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
+                  selectedPlatform === 'mac'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Apple size={15} />
+                macOS
               </button>
             </div>
 
-            {/* Electron auto-update prompt (If inside Electron app on current platform) */}
+            {/* Electron auto-update prompt */}
             {isElectron && status === 'downloaded' && (
               <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-3">
                 <div className="flex items-center gap-3 text-sky-800">
@@ -278,7 +284,9 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Available {selectedPlatform === 'windows' ? 'Windows (.exe / .zip)' : 'Linux (.AppImage / .deb / .rpm)'} Installers
+                  {selectedPlatform === 'windows' && 'Windows Packages (.exe / .zip)'}
+                  {selectedPlatform === 'linux' && 'Linux Packages (.AppImage / .deb / .rpm)'}
+                  {selectedPlatform === 'mac' && 'macOS Packages (.dmg / .zip / .pkg)'}
                 </h4>
                 <span className="text-[11px] font-medium text-slate-400">v{targetVersion}</span>
               </div>
@@ -313,7 +321,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
 
             {/* Footer Notice */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Supports Windows 10/11 & Linux (Ubuntu, Mint, Debian, Fedora)</span>
+              <span>Supports Windows 10/11, Linux & macOS (Intel & Apple Silicon)</span>
               <button
                 onClick={handleClose}
                 className="font-semibold text-slate-700 hover:text-indigo-600 transition-colors"

@@ -61,3 +61,26 @@ deb:
 
 rpm:
   artifactName: "${productName}-${version}.x86_64.${ext}"
+
+mac:
+  category: public.app-category.business
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+    - target: pkg
+      arch:
+        - x64
+        - arm64
+
+dmg:
+  artifactName: "${productName}-${version}.${ext}"
+
+pkg:
+  artifactName: "${productName}-${version}.${ext}"

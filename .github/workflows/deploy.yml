@@ -1,4 +1,4 @@
-name: Build and Deploy Frontend Desktop App Updates
+name: Build and Deploy Cross-Platform Desktop App Updates
 
 on:
   push:
@@ -7,8 +7,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy-frontend:
-    runs-on: windows-latest
+  build-desktop-app:
+    name: Build Desktop App (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: win
+            build_cmd: npm run build:win
+          - os: ubuntu-latest
+            target: linux
+            build_cmd: npm run build:linux
+          - os: macos-latest
+            target: mac
+            build_cmd: npm run build:mac
 
     steps:
       - name: Checkout repository
@@ -23,11 +37,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Electron Desktop Application
-        run: npm run electron:build
-
-      - name: Verify build artifacts output
-        run: dir dist-electron
+      - name: Build Desktop Application for ${{ matrix.target }}
+        run: ${{ matrix.build_cmd }}
 
       - name: Deploy Desktop App Updates via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5

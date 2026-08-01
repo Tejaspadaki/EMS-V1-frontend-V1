@@ -128,28 +128,34 @@ function createICO(pngBuffer) {
   return Buffer.concat([header, dirEntry, pngBuffer]);
 }
 
-console.log('[Icon Generator] Generating Linux PNG icons...');
-const sizes = [16, 32, 48, 64, 128, 256, 512];
-let icon256Buffer = null;
+console.log('[Icon Generator] Generating Linux & macOS PNG icons...');
+const sizes = [16, 32, 48, 64, 128, 256, 512, 1024];
+let icon512Buffer = null;
 
 for (const size of sizes) {
   const pngBuf = createPNG(size, size);
   const outPath = path.join(iconsDir, `${size}x${size}.png`);
   fs.writeFileSync(outPath, pngBuf);
   console.log(` -> Saved ${size}x${size}.png`);
-  if (size === 256) icon256Buffer = pngBuf;
+  if (size === 512) icon512Buffer = pngBuf;
 }
 
 // Save main icon.png in build/
 const iconPngPath = path.join(buildDir, 'icon.png');
-fs.writeFileSync(iconPngPath, createPNG(512, 512));
+fs.writeFileSync(iconPngPath, icon512Buffer || createPNG(512, 512));
 console.log(' -> Saved build/icon.png (512x512)');
 
 // Generate and save icon.ico for Windows
 console.log('[Icon Generator] Generating Windows ICO icon...');
-const icoBuf = createICO(icon256Buffer || createPNG(256, 256));
+const icoBuf = createICO(createPNG(256, 256));
 const iconIcoPath = path.join(buildDir, 'icon.ico');
 fs.writeFileSync(iconIcoPath, icoBuf);
 console.log(' -> Saved build/icon.ico');
 
-console.log('[Icon Generator] All application icons successfully generated in build/');
+// Generate fallback icon.icns for macOS
+console.log('[Icon Generator] Generating macOS ICNS icon placeholder...');
+const iconIcnsPath = path.join(buildDir, 'icon.icns');
+fs.writeFileSync(iconIcnsPath, icon512Buffer || createPNG(512, 512));
+console.log(' -> Saved build/icon.icns');
+
+console.log('[Icon Generator] All application icons (.ico, .png, .icns) successfully generated in build/');
