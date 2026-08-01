@@ -1,5 +1,6 @@
-const { ipcMain, dialog, Notification, BrowserWindow } = require('electron');
+const { ipcMain, dialog, Notification, BrowserWindow, app } = require('electron');
 const os = require('os');
+const path = require('path');
 
 function registerSystemIPCHandlers() {
   // IPC handle for Open File / Folder Dialog
@@ -65,16 +66,36 @@ function registerSystemIPCHandlers() {
     if (win) win.flashFrame(false);
   });
 
-  // IPC handle for System Information
+  // IPC handle for System Information & Paths
   ipcMain.handle('system:info', () => {
     return {
       platform: os.platform(),
       arch: os.arch(),
       totalMem: os.totalmem(),
       freeMem: os.freemem(),
-      cpus: os.cpus().length
+      cpus: os.cpus().length,
+      pathSeparator: path.sep,
+      paths: {
+        userData: app.getPath('userData'),
+        logs: app.getPath('logs'),
+        cache: app.getPath('cache'),
+        downloads: app.getPath('downloads'),
+        temp: app.getPath('temp'),
+        home: app.getPath('home')
+      }
     };
+  });
+
+  // IPC handle for getting specific app path by name
+  ipcMain.handle('system:getPath', (event, name) => {
+    try {
+      return app.getPath(name);
+    } catch (err) {
+      console.error(`[IPC] Invalid app path requested: ${name}`, err);
+      return null;
+    }
   });
 }
 
 module.exports = { registerSystemIPCHandlers };
+

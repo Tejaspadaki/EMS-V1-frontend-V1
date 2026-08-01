@@ -35,7 +35,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          port: ${{ secrets.FTP_PORT }}
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
+          security: loose
+          port: ${{ secrets.FTP_PORT || 21 }}
+          timeout: 60000
           local-dir: ./dist-electron/
           server-dir: /public/updates/

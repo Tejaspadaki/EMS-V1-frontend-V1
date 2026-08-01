@@ -31,9 +31,11 @@ const PACKAGES = [
   }
 ];
 
-// Resolve main cache directory
+// Resolve main cache directory across operating systems
 const cacheRoot = path.join(
-  process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'),
+  process.env.LOCALAPPDATA || (process.platform === 'win32'
+    ? path.join(os.homedir(), 'AppData', 'Local')
+    : path.join(process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache'))),
   'electron-builder',
   'Cache'
 );
@@ -42,10 +44,16 @@ const cacheRoot = path.join(
 function killElectronProcesses() {
   console.log('[Cache Preparation] Checking for running Electron instances...');
   try {
-    execSync('taskkill /f /im electron.exe', { stdio: 'ignore' });
+    if (process.platform === 'win32') {
+      try { execSync('taskkill /f /im electron.exe', { stdio: 'ignore' }); } catch (e) {}
+      try { execSync('taskkill /f /im "Employee Management System.exe"', { stdio: 'ignore' }); } catch (e) {}
+    } else {
+      try { execSync('pkill -f electron || true', { stdio: 'ignore' }); } catch (e) {}
+      try { execSync('pkill -f "Employee Management System" || true', { stdio: 'ignore' }); } catch (e) {}
+    }
     console.log('[Cache Preparation] Terminated active Electron processes to unlock build files.');
   } catch (e) {
-    // taskkill returns non-zero if no process is found, safe to ignore
+    // safe to ignore if no process is running
     console.log('[Cache Preparation] No active Electron processes found.');
   }
 }

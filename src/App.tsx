@@ -207,6 +207,7 @@ function App() {
                 <Route path="/attendance/check-in" element={<CheckInPage />} />
                 <Route path="/attendance/standups" element={<StandupsTrackerPage />} />
                 <Route path="/attendance/log" element={<AttendanceLogPage />} />
+                <Route path="/attendance/enroll-face" element={<EnrollFacePage />} />
 
                 {/* Messaging Routes */}
                 <Route path="/messages" element={<ChatPage />} />

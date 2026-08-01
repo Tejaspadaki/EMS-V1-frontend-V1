@@ -11,7 +11,11 @@ let mainWindow;
 // Register deep link custom protocol client
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient(config.PROTOCOL_SCHEME, process.execPath, [path.resolve(process.argv[1])]);
+    if (process.platform === 'win32') {
+      app.setAsDefaultProtocolClient(config.PROTOCOL_SCHEME, process.execPath, [path.resolve(process.argv[1])]);
+    } else {
+      app.setAsDefaultProtocolClient(config.PROTOCOL_SCHEME);
+    }
   }
 } else {
   app.setAsDefaultProtocolClient(config.PROTOCOL_SCHEME);

@@ -21,6 +21,7 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { TaskDetailsDrawer } from './TaskDetailsDrawer';
+import { socket } from '../../services/socket';
 
 interface KanbanBoardProps {
   projectId: string;
@@ -67,6 +68,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   useEffect(() => {
     loadColumns();
+
+    if (projectId) {
+      socket.emit('join_project', projectId);
+
+      const handleRealtimeTaskMoved = (data: any) => {
+        console.log('Real-time task moved event received:', data);
+        onTaskUpdated();
+      };
+
+      socket.on('kanban_task_moved', handleRealtimeTaskMoved);
+
+      return () => {
+        socket.emit('leave_project', projectId);
+        socket.off('kanban_task_moved', handleRealtimeTaskMoved);
+      };
+    }
   }, [projectId]);
 
   const handleDeleteTask = async (taskId: string) => {
@@ -109,7 +126,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       const oldColumnName = task.status || 'Previous Column';
       
       try {
-        // Update task column
+        // Broadcast optimistic move via WebSocket
+        socket.emit('kanban_task_moved', {
+          projectId,
+          taskId: draggedTaskId,
+          targetColumnId,
+          oldColumnName,
+          columnName: targetCol.name
+        });
+
+        // Update task column on server
         const updateRes = await updateTaskColumn(draggedTaskId, targetColumnId);
         
         // Show WIP alert if exceeded
@@ -201,9 +227,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       </div>
 
       {/* Board Quick Filters Bar */}
-      <div className="flex gap-3 mb-4 bg-slate-50/50 border border-slate-100 p-2.5 rounded-xl shadow-2xs items-center flex-wrap shrink-0">
-        <div className="flex items-center gap-1 text-xs text-slate-500 font-bold shrink-0">
-          <Filter size={13} className="text-indigo-500" /> Filters:
+      <div className="flex items-center gap-3 mb-4 bg-slate-50 border border-slate-200/80 p-3 rounded-2xl shadow-xs shrink-0 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs text-slate-700 font-extrabold shrink-0">
+          <Filter size={14} className="text-indigo-600" /> Filters:
         </div>
         
         <input 
@@ -211,13 +237,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           placeholder="Filter by title..."
           value={filterSearch}
           onChange={e => setFilterSearch(e.target.value)}
-          className="ems-input text-xs py-0.5 px-2 max-w-[140px] bg-white border border-slate-200"
+          className="text-xs py-1.5 px-3 rounded-xl bg-white border border-slate-200 text-slate-800 font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs max-w-[160px]"
         />
 
         <select
           value={filterAssignee}
           onChange={e => setFilterAssignee(e.target.value)}
-          className="ems-input text-xs py-0.5 px-2 bg-white border border-slate-200 font-semibold text-slate-600 cursor-pointer"
+          className="text-xs py-1.5 px-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs min-w-[130px]"
         >
           <option value="">All Assignees</option>
           {(projectMembers || []).map(m => (
@@ -228,7 +254,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         <select
           value={filterPriority}
           onChange={e => setFilterPriority(e.target.value)}
-          className="ems-input text-xs py-0.5 px-2 bg-white border border-slate-200 font-semibold text-slate-600 cursor-pointer"
+          className="text-xs py-1.5 px-3 bg-white border border-slate-200 rounded-xl font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs min-w-[130px]"
         >
           <option value="">All Priorities</option>
           <option value="High">High</option>
@@ -239,7 +265,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {(filterSearch || filterAssignee || filterPriority) && (
           <button 
             onClick={() => { setFilterSearch(''); setFilterAssignee(''); setFilterPriority(''); }}
-            className="text-xs font-black text-rose-500 hover:text-rose-700 transition-colors ml-auto"
+            className="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors ml-auto flex items-center gap-1"
           >
             Clear Filters
           </button>
@@ -247,7 +273,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       </div>
 
       {/* Columns Container */}
-      <div className="flex-1 flex gap-4 overflow-x-auto min-h-0 pb-4">
+      <div className="flex-1 flex gap-4 overflow-x-auto overflow-y-hidden min-h-[450px] max-w-full pb-4 pt-1 items-stretch custom-scrollbar">
         {columns.map(col => {
           const colTasks = tasks.filter(t => {
             if (t.columnId !== col.id) return false;
@@ -264,14 +290,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               key={col.id}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
-              className={`w-[290px] shrink-0 flex flex-col rounded-2xl border transition-all p-3 min-h-full ${
+              className={`w-[300px] min-w-[300px] shrink-0 flex flex-col rounded-2xl border transition-all p-3.5 min-h-[430px] max-h-[580px] ${
                 isWipExceeded 
-                  ? 'bg-rose-50/40 border-rose-300 shadow-md shadow-rose-50/20 animate-[pulse_3s_infinite]' 
-                  : 'bg-slate-50/80 border-slate-100'
+                  ? 'bg-rose-50/50 border-rose-300 shadow-md shadow-rose-100 animate-[pulse_3s_infinite]' 
+                  : 'bg-slate-50/90 border-slate-200/80 shadow-xs'
               }`}
             >
               {/* Column Header */}
-              <div className="flex justify-between items-center mb-3 shrink-0">
+              <div className="flex justify-between items-center mb-3.5 shrink-0 pb-2 border-b border-slate-200/60">
                 <div className="min-w-0">
                   <h4 className="font-extrabold text-sm text-slate-800 truncate flex items-center gap-1.5">
                     {col.name}
@@ -287,13 +313,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-bold bg-white border px-2 py-0.5 rounded-full shadow-sm text-slate-500">
+                <span className="text-[11px] font-extrabold bg-white border border-slate-200 px-2.5 py-0.5 rounded-full shadow-2xs text-slate-700">
                   {taskCount}
                 </span>
               </div>
 
               {/* Cards Container */}
-              <div className="flex-1 overflow-y-auto space-y-2.5 min-h-[100px] pr-0.5">
+              <div className="flex-1 overflow-y-auto space-y-3 min-h-[250px] pr-1.5 custom-scrollbar">
                 {colTasks.map(task => (
                   <div
                     key={task.id}
@@ -301,55 +327,64 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     onDragStart={(e) => handleDragStart(e, task.id)}
                     onDragEnd={handleDragEnd}
                     onClick={() => { setSelectedTaskId(task.id); setDrawerOpen(true); }}
-                    className="bg-white border border-slate-100 rounded-xl p-3 shadow-xs hover:shadow-md hover:scale-[1.01] active:cursor-grabbing transition-all cursor-grab"
+                    className="bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:cursor-grabbing transition-all cursor-grab group relative"
                   >
-                    <p className="font-bold text-xs text-slate-800 leading-snug break-words">{task.title}</p>
+                    <p className="font-bold text-xs text-slate-800 leading-snug break-words pr-5">{task.title}</p>
                     
                     {/* Meta info */}
-                    <div className="mt-3 flex items-center justify-between gap-2 border-t pt-2 border-slate-50 text-[10px] text-slate-400 font-semibold">
-                      <div className="flex items-center gap-1">
-                        <Clock size={11} />
-                        <span>{task.deadline}</span>
+                    <div className="mt-3 flex items-center justify-between gap-2 border-t pt-2.5 border-slate-100 text-[10px] text-slate-500 font-semibold">
+                      <div className="flex items-center gap-1 text-slate-400">
+                        <Clock size={12} />
+                        <span>{task.deadline || 'No deadline'}</span>
                       </div>
                       
                       {/* Priority indicator */}
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
-                        task.priority === 'High' ? 'bg-rose-50 text-rose-500' :
-                        task.priority === 'Medium' ? 'bg-amber-50 text-amber-500' : 'bg-slate-50 text-slate-500'
+                      <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wide ${
+                        task.priority === 'High' ? 'bg-rose-50 text-rose-600 border border-rose-100' :
+                        task.priority === 'Medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-slate-100 text-slate-600 border border-slate-200'
                       }`}>
-                        {task.priority}
+                        {task.priority || 'Normal'}
                       </span>
                     </div>
 
                     <div className="mt-2.5 flex items-center justify-between gap-2 shrink-0">
                       {/* Assignee initials badge */}
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 rounded-full bg-indigo-500 text-white text-[8px] font-black flex items-center justify-center">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white text-[9px] font-black flex items-center justify-center shadow-xs">
                           {task.assigneeName ? getInitials(task.assigneeName) : 'U'}
                         </div>
-                        <span className="text-[10px] text-slate-500 truncate max-w-[80px]">
+                        <span className="text-[11px] font-semibold text-slate-600 truncate max-w-[90px]">
                           {task.assigneeName || 'Unassigned'}
                         </span>
                       </div>
 
-                      {/* Story points indicator */}
-                      {(task as any).storyPoints !== null && (task as any).storyPoints !== undefined && (
-                        <span className="bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-[9px] px-1.5 py-0.5 rounded">
-                          {(task as any).storyPoints} SP
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {/* Story points indicator */}
+                        {(task as any).storyPoints !== null && (task as any).storyPoints !== undefined && (
+                          <span className="bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-[9px] px-2 py-0.5 rounded-md">
+                            {(task as any).storyPoints} SP
+                          </span>
+                        )}
 
-                      {!readOnly && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
-                          className="text-slate-300 hover:text-rose-500 p-1 rounded-md transition-colors"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+                        {!readOnly && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
+                            className="text-slate-300 hover:text-rose-500 p-1 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                            title="Delete Task"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
+
+                {colTasks.length === 0 && (
+                  <div className="h-28 border-2 border-dashed border-slate-200/80 rounded-2xl flex flex-col items-center justify-center text-slate-400 text-xs font-semibold">
+                    <span>No cards in {col.name}</span>
+                  </div>
+                )}
               </div>
             </div>
           );

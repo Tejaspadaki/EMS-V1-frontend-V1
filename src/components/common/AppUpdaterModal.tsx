@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles } from 'lucide-react';
+import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles, Monitor, Terminal } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
 
 interface AppUpdaterModalProps {
@@ -13,15 +13,19 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
   isOpen, 
   onClose,
   initialStatus = 'idle',
-  initialVersion = '1.1.0'
+  initialVersion = '1.4.0'
 }) => {
-  const [currentVersion, setCurrentVersion] = useState<string>('1.0.0');
+  const [currentVersion, setCurrentVersion] = useState<string>('1.4.0');
   const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'>(initialStatus);
   const [targetVersion, setTargetVersion] = useState<string>(initialVersion);
   const [progress, setProgress] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [checking, setChecking] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState<boolean>(false);
+
+  // Platform selection for downloads: 'windows' | 'linux'
+  const isLinuxUser = typeof navigator !== 'undefined' && /linux/i.test(navigator.userAgent);
+  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux'>(isLinuxUser ? 'linux' : 'windows');
 
   const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
@@ -90,23 +94,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
         setErrorMessage(err.message || 'Unable to check for updates');
         setChecking(false);
       }
-    } else {
-      // Browser preview mode with smooth step progress animation
-      setChecking(true);
-      setStatus('checking');
-      setTimeout(() => {
-        setStatus('downloading');
-        let p = 0;
-        const interval = setInterval(() => {
-          p += 20;
-          setProgress(p);
-          if (p >= 100) {
-            clearInterval(interval);
-            setStatus('downloaded');
-            setChecking(false);
-          }
-        }, 250);
-      }, 700);
     }
   };
 
@@ -114,16 +101,64 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     if (isElectron && window.electronAPI) {
       window.electronAPI.quitAndInstall();
     } else {
-      alert('EMS Desktop will restart automatically and apply update v' + (targetVersion || '1.1.0'));
       handleClose();
     }
+  };
+
+  // Base download paths for desktop application installers
+  const downloadLinks = {
+    windows: [
+      {
+        name: 'NSIS Installer (.exe)',
+        badge: 'Recommended',
+        desc: 'Standard Windows installer with auto-updates',
+        file: `Employee Management System-Setup-${targetVersion}.exe`,
+        path: `/updates/Windows/Employee%20Management%20System-Setup-${targetVersion}.exe`
+      },
+      {
+        name: 'Portable (.exe)',
+        badge: 'No Admin Required',
+        desc: 'Run directly without installation',
+        file: `Employee Management System-Portable-${targetVersion}.exe`,
+        path: `/updates/Windows/Employee%20Management%20System-Portable-${targetVersion}.exe`
+      },
+      {
+        name: 'ZIP Package (.zip)',
+        badge: 'Archive',
+        desc: 'Standalone executable compressed archive',
+        file: `Employee Management System-${targetVersion}-win.zip`,
+        path: `/updates/Windows/Employee%20Management%20System-${targetVersion}-win.zip`
+      }
+    ],
+    linux: [
+      {
+        name: 'AppImage (.AppImage)',
+        badge: 'Universal Linux',
+        desc: 'Runs on Ubuntu, Fedora, Mint, Debian, Arch & all distros',
+        file: `Employee Management System-${targetVersion}.AppImage`,
+        path: `/updates/Linux/Employee%20Management%20System-${targetVersion}.AppImage`
+      },
+      {
+        name: 'DEB Package (.deb)',
+        badge: 'Ubuntu / Debian',
+        desc: 'Native package for Debian, Ubuntu, Linux Mint, Pop!_OS',
+        file: `Employee Management System_${targetVersion}_amd64.deb`,
+        path: `/updates/Linux/Employee%20Management%20System_${targetVersion}_amd64.deb`
+      },
+      {
+        name: 'RPM Package (.rpm)',
+        badge: 'Fedora / RHEL',
+        desc: 'Native package for Fedora, RedHat, CentOS, openSUSE',
+        file: `Employee Management System-${targetVersion}.x86_64.rpm`,
+        path: `/updates/Linux/Employee%20Management%20System-${targetVersion}.x86_64.rpm`
+      }
+    ]
   };
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* Dynamic Scoped Keyframes */}
       <style>{`
         @keyframes updaterBackdropFadeIn {
           from { opacity: 0; backdrop-filter: blur(0px); }
@@ -156,14 +191,9 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-4px); }
         }
-        @keyframes updaterShine {
-          0% { left: -100%; opacity: 0; }
-          50% { opacity: 0.5; }
-          100% { left: 200%; opacity: 0; }
-        }
       `}</style>
 
-      {/* Backdrop overlay with blur */}
+      {/* Backdrop overlay */}
       <div 
         onClick={handleClose}
         style={{
@@ -173,7 +203,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
         }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60"
       >
-        {/* Modal Window Container */}
+        {/* Modal Window */}
         <div 
           onClick={e => e.stopPropagation()}
           style={{
@@ -181,165 +211,116 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
               ? 'updaterModalPopOut 0.2s ease-in forwards' 
               : 'updaterModalPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
           }}
-          className="bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 max-w-[440px] w-full overflow-hidden transition-all relative"
+          className="bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 max-w-[500px] w-full overflow-hidden transition-all relative"
         >
           
-          {/* Top Header Bar */}
-          <div className="flex items-center justify-between px-6 py-3.5 border-b border-slate-100 bg-slate-50/70 backdrop-blur-sm">
-            <span className="text-xs font-semibold text-slate-700 tracking-wide flex items-center gap-2">
-              <Sparkles size={14} className="text-sky-500 animate-spin" style={{ animationDuration: '6s' }} />
-              Update Ready to Install
+          {/* Header Bar */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70 backdrop-blur-sm">
+            <span className="text-sm font-semibold text-slate-800 tracking-wide flex items-center gap-2">
+              <Sparkles size={16} className="text-indigo-600 animate-spin" style={{ animationDuration: '6s' }} />
+              {isElectron ? 'EMS Desktop App Update' : 'Download EMS Desktop App'}
             </span>
             <button 
               onClick={handleClose}
-              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors duration-150 active:scale-90"
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition-colors active:scale-90"
               aria-label="Close"
             >
-              <X size={16} />
+              <X size={18} />
             </button>
           </div>
 
           {/* Content Body */}
           <div className="p-6 space-y-6">
 
-            {/* When update downloaded / ready (Matches exact reference design with animations) */}
-            {(status === 'downloaded' || status === 'idle' || !isElectron) && (
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  {/* Animated Information Badge Icon */}
-                  <div className="relative shrink-0 mt-0.5">
-                    <div 
-                      style={{ animation: 'updaterBadgePulse 3s infinite cubic-bezier(0.4, 0, 0.6, 1)' }}
-                      className="w-12 h-12 rounded-full bg-[#0080FF] text-white flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-500/30 transition-transform duration-300"
-                    >
-                      <div style={{ animation: 'updaterFloatGentle 3s ease-in-out infinite' }}>
-                        <Info size={26} strokeWidth={2.2} />
+            {/* Platform Selection Tabs */}
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              <button
+                onClick={() => setSelectedPlatform('windows')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  selectedPlatform === 'windows'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Monitor size={16} />
+                Windows Apps
+              </button>
+              <button
+                onClick={() => setSelectedPlatform('linux')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  selectedPlatform === 'linux'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Terminal size={16} />
+                Linux Apps (AppImage / DEB / RPM)
+              </button>
+            </div>
+
+            {/* Electron auto-update prompt (If inside Electron app on current platform) */}
+            {isElectron && status === 'downloaded' && (
+              <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-3">
+                <div className="flex items-center gap-3 text-sky-800">
+                  <Info size={20} />
+                  <p className="text-xs font-semibold">An update has been downloaded automatically!</p>
+                </div>
+                <button
+                  onClick={handleRestartNow}
+                  className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium text-xs rounded-lg transition-all"
+                >
+                  Restart Application Now
+                </button>
+              </div>
+            )}
+
+            {/* Download Installers List for Selected Platform */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Available {selectedPlatform === 'windows' ? 'Windows (.exe / .zip)' : 'Linux (.AppImage / .deb / .rpm)'} Installers
+                </h4>
+                <span className="text-[11px] font-medium text-slate-400">v{targetVersion}</span>
+              </div>
+
+              <div className="space-y-2.5">
+                {downloadLinks[selectedPlatform].map((item, idx) => (
+                  <a
+                    key={idx}
+                    href={item.path}
+                    download={item.file}
+                    className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-indigo-300 bg-white hover:bg-indigo-50/40 rounded-xl transition-all duration-200 group shadow-xs hover:shadow-sm"
+                  >
+                    <div className="space-y-0.5 min-w-0 pr-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                          {item.name}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 group-hover:bg-indigo-100 group-hover:text-indigo-700 shrink-0">
+                          {item.badge}
+                        </span>
                       </div>
+                      <p className="text-xs text-slate-500 truncate">{item.desc}</p>
                     </div>
-                  </div>
-                  
-                  {/* Headline & Description */}
-                  <div className="space-y-1 pt-0.5">
-                    <h3 className="text-[17px] font-medium text-[#0060C0] leading-snug tracking-tight">
-                      EMS Desktop v{targetVersion || '1.1.0'} has been downloaded.
-                    </h3>
-                    <p className="text-[13px] text-slate-600 leading-relaxed font-normal">
-                      Restart the application now to apply the update automatically.
-                    </p>
-                  </div>
-                </div>
 
-                {/* Action Buttons Stack */}
-                <div className="space-y-2.5 pt-2">
-                  {/* Primary "Restart Now" Button */}
-                  <button
-                    onClick={handleRestartNow}
-                    className="relative overflow-hidden w-full flex items-center gap-3 px-4 py-3 bg-white border border-sky-300 hover:border-sky-400 hover:bg-sky-50/80 text-[#0060C0] font-medium text-sm rounded-xl transition-all duration-200 shadow-xs hover:shadow-md hover:shadow-sky-500/10 active:scale-[0.98] group"
-                  >
-                    {/* Animated Shine Sweep Effect */}
-                    <div 
-                      className="absolute top-0 bottom-0 w-16 bg-gradient-to-r from-transparent via-sky-200/40 to-transparent pointer-events-none"
-                      style={{ animation: 'updaterShine 4s ease-in-out infinite' }}
-                    />
-                    <ArrowRight 
-                      size={18} 
-                      className="text-[#0060C0] group-hover:translate-x-1.5 transition-transform duration-200 ease-out shrink-0" 
-                    />
-                    <span className="tracking-tight font-medium">Restart Now</span>
-                  </button>
-
-                  {/* Secondary "Later" Button */}
-                  <button
-                    onClick={handleClose}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 bg-transparent hover:bg-slate-100/80 border border-transparent hover:border-slate-200 text-[#0060C0] font-medium text-sm rounded-xl transition-all duration-200 active:scale-[0.98] group"
-                  >
-                    <ArrowRight 
-                      size={18} 
-                      className="text-[#0060C0] group-hover:translate-x-1.5 transition-transform duration-200 ease-out shrink-0" 
-                    />
-                    <span className="tracking-tight font-medium">Later</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Checking State */}
-            {status === 'checking' && (
-              <div className="flex flex-col items-center justify-center py-6 space-y-3">
-                <RefreshCw size={36} className="text-sky-600 animate-spin" />
-                <p className="text-sm font-semibold text-slate-800">Checking for updates...</p>
-                <p className="text-xs text-slate-500">Contacting update server</p>
-              </div>
-            )}
-
-            {/* Downloading State with Animated Progress */}
-            {status === 'downloading' && (
-              <div className="space-y-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-sky-100/70 text-sky-600 rounded-xl animate-bounce">
-                    <Download size={22} />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-900">Downloading EMS Desktop v{targetVersion}...</h4>
-                    <p className="text-xs text-slate-500">Please wait while the update files are transferred.</p>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-medium text-slate-600">
-                    <span>Progress</span>
-                    <span className="text-sky-600 font-bold">{progress}%</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200/60 relative">
-                    <div 
-                      className="bg-[#0080FF] h-full rounded-full transition-all duration-300 shadow-sm shadow-blue-500/40 relative overflow-hidden"
-                      style={{ width: `${progress}%` }}
-                    >
-                      <div 
-                        className="absolute top-0 bottom-0 left-0 right-0 bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.4)_50%,rgba(255,255,255,0)_100%)] animate-pulse"
-                      />
+                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
+                      <Download size={18} />
                     </div>
-                  </div>
-                </div>
+                  </a>
+                ))}
               </div>
-            )}
+            </div>
 
-            {/* Up-to-date State */}
-            {status === 'not-available' && (
-              <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-md shadow-emerald-500/20">
-                  <CheckCircle2 size={28} />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-slate-900">You are up to date!</h4>
-                  <p className="text-xs text-slate-500 mt-1">EMS Desktop v{currentVersion} is currently the latest release.</p>
-                </div>
-                <button
-                  onClick={handleClose}
-                  className="mt-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95"
-                >
-                  Close
-                </button>
-              </div>
-            )}
-
-            {/* Error State */}
-            {status === 'error' && (
-              <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shadow-md shadow-rose-500/20">
-                  <AlertCircle size={28} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Update Check Failed</h4>
-                  <p className="text-xs text-rose-600 mt-1">{errorMessage || 'Could not reach update server.'}</p>
-                </div>
-                <button
-                  onClick={handleCheckForUpdates}
-                  className="mt-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-95"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
+            {/* Footer Notice */}
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Supports Windows 10/11 & Linux (Ubuntu, Mint, Debian, Fedora)</span>
+              <button
+                onClick={handleClose}
+                className="font-semibold text-slate-700 hover:text-indigo-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
 
           </div>
         </div>

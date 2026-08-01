@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { submitCheckIn } from '../../api/attendance.api';
 import { 
   Camera, MapPin, AlertCircle, CheckCircle2, Loader2, ScanLine, 
-  ShieldCheck, Clock, Compass, Sun, UserCheck, RefreshCw, Zap 
+  ShieldCheck, Clock, Compass, Sun, UserCheck, RefreshCw, Zap, ClipboardList 
 } from 'lucide-react';
 import { useFaceApi } from '../../hooks/useFaceApi';
 
@@ -163,12 +164,20 @@ export const CheckInPage: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm shrink-0 cursor-pointer"
-            >
-              <RefreshCw size={14} /> Check In Again
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                to="/attendance/log"
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+              >
+                <ClipboardList size={14} /> View Attendance Log
+              </Link>
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+              >
+                <RefreshCw size={14} /> Check In Again
+              </button>
+            </div>
           </div>
         )}
 

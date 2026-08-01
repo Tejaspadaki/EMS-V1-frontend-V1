@@ -3,8 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { toast } from '../utils/toast';
 
 const DEV_API_URL = import.meta.env.VITE_DEV_API_URL || 'http://localhost:5000';
-const PROD_API_URL = import.meta.env.VITE_PROD_API_URL || 'https://ems-backend.yuktiyantra.com';
-const resolvedBaseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? DEV_API_URL : PROD_API_URL);
+const resolvedBaseURL = import.meta.env.VITE_API_URL || DEV_API_URL;
 
 const api = axios.create({
   baseURL: resolvedBaseURL,
@@ -33,8 +32,6 @@ api.interceptors.request.use(
 // Response Interceptor
 api.interceptors.response.use(
   (response) => {
-    // If the response follows our standardized ApiResponse format, we can unwrap it here
-    // However, since some code expects response.data to have the full object, we'll return response as is
     return response;
   },
   (error: AxiosError) => {
@@ -58,12 +55,15 @@ api.interceptors.response.use(
       // Handle Internal Server Error globally
       toast.error('Server error. Our team has been notified.');
       console.error('Critical API Error:', error);
+    } else if (status === 503) {
+      // Handle Service Unavailable
+      toast.error('Service Unavailable (503). Ensure backend server is running on http://localhost:5000.');
     } else if (error.code === 'ECONNABORTED') {
       // Handle Timeout
       toast.error('Request timed out. Please check your internet connection.');
     } else if (!error.response) {
       // Handle Network Error (Server Down / CORS)
-      toast.error('Network error. Cannot connect to the server.');
+      toast.error('Network error. Cannot connect to backend at ' + resolvedBaseURL);
     }
 
     return Promise.reject(error);

@@ -131,6 +131,96 @@ export const SettingsPage: React.FC = () => {
 
           <Card hover={false}>
             <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-purple-50">
+                    <Download className="text-purple-600" size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">EMS Desktop Apps</h2>
+                    <p className="text-sm text-slate-500">Download native applications for Windows and Linux.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Windows Card */}
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-sm text-slate-900 flex items-center gap-2">
+                      🪟 Windows Apps
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-700">Win 10/11</span>
+                  </div>
+                  <p className="text-xs text-slate-500">Available as NSIS setup installer, portable exe, or zip archive.</p>
+                  <div className="space-y-1.5 pt-1">
+                    <a
+                      href="/updates/Windows/Employee%20Management%20System-Setup-1.4.0.exe"
+                      download="Employee Management System-Setup-1.4.0.exe"
+                      className="block text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      Download Windows Setup (.exe)
+                    </a>
+                    <div className="flex gap-2">
+                      <a
+                        href="/updates/Windows/Employee%20Management%20System-Portable-1.4.0.exe"
+                        download="Employee Management System-Portable-1.4.0.exe"
+                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
+                      >
+                        Portable (.exe)
+                      </a>
+                      <a
+                        href="/updates/Windows/Employee%20Management%20System-1.4.0-win.zip"
+                        download="Employee Management System-1.4.0-win.zip"
+                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
+                      >
+                        ZIP Archive
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Linux Card */}
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-sm text-slate-900 flex items-center gap-2">
+                      🐧 Linux Apps
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">All Distros</span>
+                  </div>
+                  <p className="text-xs text-slate-500">Available as universal AppImage, Ubuntu/Debian .deb, or Fedora/RHEL .rpm.</p>
+                  <div className="space-y-1.5 pt-1">
+                    <a
+                      href="/updates/Linux/Employee%20Management%20System-1.4.0.AppImage"
+                      download="Employee Management System-1.4.0.AppImage"
+                      className="block text-center py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      Download AppImage (.AppImage)
+                    </a>
+                    <div className="flex gap-2">
+                      <a
+                        href="/updates/Linux/Employee%20Management%20System_1.4.0_amd64.deb"
+                        download="Employee Management System_1.4.0_amd64.deb"
+                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
+                      >
+                        DEB (Ubuntu)
+                      </a>
+                      <a
+                        href="/updates/Linux/Employee%20Management%20System-1.4.0.x86_64.rpm"
+                        download="Employee Management System-1.4.0.x86_64.rpm"
+                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
+                      >
+                        RPM (Fedora)
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card hover={false}>
+            <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 rounded-xl bg-sky-50">
                   <KeyRound className="text-sky-600" size={20} />

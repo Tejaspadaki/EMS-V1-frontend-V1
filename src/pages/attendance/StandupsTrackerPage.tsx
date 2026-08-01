@@ -11,14 +11,24 @@ export const StandupsTrackerPage: React.FC = () => {
   const [excuseModal, setExcuseModal] = useState({ open: false, date: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    getStandups().then(data => {
+  const fetchStandups = async () => {
+    try {
+      const data = await getStandups();
       setRecords(data);
+    } catch (err) {
+      console.error('Failed to load standups', err);
+    } finally {
       setLoading(false);
-    });
+    }
+  };
+
+  useEffect(() => {
+    fetchStandups();
   }, []);
 
-  const unexcusedMisses = records.filter(r => r.status === 'Missed').length;
+  const unexcusedMisses = records.filter(
+    r => r.status === 'Missed' || r.status === 'MISSED' || r.status === 'absent'
+  ).length;
   const showWarning = unexcusedMisses >= 3;
 
   const handleExcuseSubmit = async () => {
@@ -26,9 +36,9 @@ export const StandupsTrackerPage: React.FC = () => {
     setSubmitting(true);
     try {
       await excuseStandup(excuseModal.date, excuseModal.reason);
-      // Optimistic update
-      setRecords(prev => [...prev, { id: Math.random().toString(), date: excuseModal.date, status: 'Excused', notes: 'Pre-excused (Intimate Absence)' }]);
+      toast.success('Absence excuse submitted successfully!');
       setExcuseModal({ open: false, date: '', reason: '' });
+      await fetchStandups();
     } catch (err) {
       toast.error('Failed to submit excuse');
     } finally {
@@ -75,27 +85,34 @@ export const StandupsTrackerPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
-              {records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(record => (
-                <tr key={record.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 flex items-center gap-3">
-                    <Calendar size={16} />
-                    {new Date(record.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border
-                      ${record.status === 'Attended' ? 'bg-[var(--color-status-active-bg)] text-[var(--color-status-active-text)] border-[#2E7D32]/20' : 
-                        record.status === 'Missed' ? 'bg-[var(--color-status-inactive-bg)] text-[var(--color-status-inactive-text)] border-[#C62828]/20' : 
-                        'bg-gray-100 text-gray-700 border-gray-300'}
-                    `}>
-                      {record.status === 'Attended' ? <Check size={12} /> : record.status === 'Missed' ? <X size={12} /> : <Info size={12} />}
-                      {record.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 italic text-xs">
-                    {record.notes || '-'}
-                  </td>
-                </tr>
-              ))}
+              {records.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(record => {
+                const isAttended = record.status === 'Attended' || record.status === 'PRESENT' || record.status === 'present';
+                const isMissed = record.status === 'Missed' || record.status === 'MISSED' || record.status === 'absent';
+                const isExcused = record.status === 'Excused' || record.status === 'EXCUSED' || record.status === 'excused';
+
+                return (
+                  <tr key={record.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 flex items-center gap-3">
+                      <Calendar size={16} />
+                      {new Date(record.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border
+                        ${isAttended ? 'bg-[var(--color-status-active-bg)] text-[var(--color-status-active-text)] border-[#2E7D32]/20' : 
+                          isMissed ? 'bg-[var(--color-status-inactive-bg)] text-[var(--color-status-inactive-text)] border-[#C62828]/20' : 
+                          isExcused ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                          'bg-gray-100 text-gray-700 border-gray-300'}
+                      `}>
+                        {isAttended ? <Check size={12} /> : isMissed ? <X size={12} /> : <Info size={12} />}
+                        {isAttended ? 'Attended' : isMissed ? 'Missed' : isExcused ? 'Excused' : record.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 italic text-xs">
+                      {record.notes || (isExcused ? 'Pre-excused (Intimate Absence)' : '-')}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

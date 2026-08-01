@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Platform metadata queries
   getSystemInfo: () => ipcRenderer.invoke('system:info'),
+  getAppPath: (name) => ipcRenderer.invoke('system:getPath', name),
 
   // Auto-updater API
   checkForUpdates: () => ipcRenderer.invoke('updater:check'),

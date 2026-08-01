@@ -336,7 +336,7 @@ export const ProjectDetailsPage: React.FC = () => {
     ));
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col max-w-[1600px] mx-auto w-full">
+    <div className="min-h-full flex flex-col max-w-[1600px] mx-auto w-full pb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 shrink-0 bg-white/40 backdrop-blur-3xl p-6 rounded-3xl border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_48px_rgba(0,0,0,0.06)] transition-all duration-500">
         <div>
@@ -661,8 +661,8 @@ export const ProjectDetailsPage: React.FC = () => {
           )}
 
           {activeTab === 'board' && (
-            <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-white/60 backdrop-blur-xl border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-indigo-50/50 blur-3xl -z-10 pointer-events-none"></div>
+            <div className="flex-1 flex flex-col min-h-[550px] min-w-0 bg-white/90 backdrop-blur-xl border border-slate-200/80 rounded-3xl shadow-sm p-6 relative overflow-x-auto">
+              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-indigo-50/40 blur-3xl -z-10 pointer-events-none"></div>
               <KanbanBoard 
                 projectId={project.id} 
                 tasks={tasks} 

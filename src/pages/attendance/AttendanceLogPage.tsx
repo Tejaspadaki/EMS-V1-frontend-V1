@@ -23,7 +23,10 @@ export const AttendanceLogPage: React.FC = () => {
       const data = await getEmployeeDetails(user.id);
       setLogs(data.attendances || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch attendance logs.');
+      const msg = err.response?.status === 503 
+        ? 'Backend service is unavailable (HTTP 503). Please verify the backend server is running on http://localhost:5000.'
+        : (err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Failed to fetch attendance logs.');
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -153,6 +156,26 @@ export const AttendanceLogPage: React.FC = () => {
               <tbody className="divide-y divide-slate-100 text-slate-600">
                 {logs.map((log) => {
                   const isCheckIn = log.type === 'check_in' || log.type.toLowerCase().includes('in');
+                  const logDateObj = log.date ? new Date(log.date) : new Date();
+                  const recordedAtObj = log.recordedAt ? new Date(log.recordedAt) : logDateObj;
+
+                  const formattedDate = !isNaN(logDateObj.getTime())
+                    ? logDateObj.toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })
+                    : 'N/A';
+
+                  const formattedTime = !isNaN(recordedAtObj.getTime())
+                    ? recordedAtObj.toLocaleTimeString(undefined, {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })
+                    : '--:--:--';
+
                   return (
                     <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">
@@ -164,19 +187,10 @@ export const AttendanceLogPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {new Date(log.date).toLocaleDateString(undefined, {
-                          weekday: 'short',
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                        {formattedDate}
                       </td>
                       <td className="px-6 py-4 text-slate-500 font-mono">
-                        {new Date(log.recordedAt).toLocaleTimeString(undefined, {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
+                        {formattedTime}
                       </td>
                       <td className="px-6 py-4">
                         {log.status ? (
