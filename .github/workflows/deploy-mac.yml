@@ -1,4 +1,4 @@
-name: Build and Deploy Cross-Platform Desktop App Updates
+name: Build and Deploy macOS Desktop App
 
 on:
   push:
@@ -7,22 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-desktop-app:
-    name: Build Desktop App (${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            target: win
-            build_cmd: npm run build:win
-          - os: ubuntu-latest
-            target: linux
-            build_cmd: npm run build:linux
-          - os: macos-latest
-            target: mac
-            build_cmd: npm run build:mac
+  build-mac-app:
+    name: Build macOS Desktop App
+    runs-on: macos-latest
 
     steps:
       - name: Checkout repository
@@ -37,10 +24,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Desktop Application for ${{ matrix.target }}
-        run: ${{ matrix.build_cmd }}
+      - name: Build macOS Desktop Application
+        run: npm run build:mac
 
-      - name: Deploy Desktop App Updates via FTP / FTPS
+      - name: Deploy macOS Updates via FTP / FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
