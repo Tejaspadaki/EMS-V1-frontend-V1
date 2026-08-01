@@ -31,7 +31,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
 
       - name: Install dependencies
@@ -40,15 +40,15 @@ jobs:
       - name: Build Desktop Application for ${{ matrix.target }}
         run: ${{ matrix.build_cmd }}
 
-      - name: Deploy Desktop App Updates via FTP
+      - name: Deploy Desktop App Updates via FTP / FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ${{ secrets.FTP_PROTOCOL || 'ftps' }}
-          security: loose
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
           port: ${{ secrets.FTP_PORT || 21 }}
-          timeout: 60000
+          security: loose
+          timeout: 1200000
           local-dir: ./dist-electron/
           server-dir: /public/updates/
