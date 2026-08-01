@@ -27,6 +27,15 @@ jobs:
       - name: Build Windows Desktop Application
         run: npm run build:win
 
+      - name: Validate Windows Build Output
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "./dist-electron/Windows")) {
+            Write-Error "Windows build output directory ./dist-electron/Windows does not exist!"
+            exit 1
+          }
+          Get-ChildItem -Path "./dist-electron/Windows" -Recurse | Select-Name, Length
+
       - name: Deploy Windows Updates via FTP / FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -36,5 +45,5 @@ jobs:
           protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
           port: ${{ secrets.FTP_PORT || 21 }}
           security: loose
-          local-dir: ./dist-electron/
-          server-dir: /public/updates/
+          local-dir: ./dist-electron/Windows/
+          server-dir: /public/updates/Windows/
