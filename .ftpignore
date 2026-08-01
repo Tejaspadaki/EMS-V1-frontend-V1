@@ -1,0 +1,28 @@
+# Unpacked Electron App Directories (Prevents 552 Disk Full Quota Error)
+win-unpacked/
+linux-unpacked/
+mac/
+mac-arm64/
+mac-universal/
+
+# Intermediate Electron Builder Logs & Metadata
+*.blockmap
+builder-effective-config.yaml
+builder-debug.log
+
+# Source Code & Dependency Folders
+.git/
+.github/
+node_modules/
+src/
+public/
+tests/
+docs/
+scripts/
+
+# Log Files & Environment Configuration
+*.log
+*.zip.tmp
+.env*
+.vscode/
+.idea/
