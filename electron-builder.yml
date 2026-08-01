@@ -1,15 +1,26 @@
-appId: com.ems.desktop
+appId: com.novynthlabs.ems
 productName: Employee Management System
+copyright: Copyright © 2026 Novynth Labs Pvt Ltd
+
 directories:
   output: dist-electron
   buildResources: build
+
 files:
   - dist/**/*
   - electron/**/*
   - package.json
+
 publish:
   provider: generic
   url: https://ems-backend.yuktiyantra.com/updates/
+
+extraMetadata:
+  author:
+    name: Novynth Labs Pvt Ltd
+    email: novynthlabs@gmail.com
+  companyName: Novynth Labs Pvt Ltd
+  maintainer: Novynth Labs Pvt Ltd <novynthlabs@gmail.com>
 
 win:
   executableName: ems-frontend
@@ -40,7 +51,8 @@ portable:
 linux:
   executableName: ems-frontend
   icon: build/icon.png
-  category: Utility
+  category: Office
+  maintainer: "Novynth Labs Pvt Ltd <novynthlabs@gmail.com>"
   synopsis: Employee Management System Desktop Application
   target:
     - target: AppImage
@@ -65,6 +77,9 @@ rpm:
 mac:
   category: public.app-category.business
   icon: build/icon.icns
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
   target:
     - target: dmg
       arch:
@@ -74,13 +89,6 @@ mac:
       arch:
         - x64
         - arm64
-    - target: pkg
-      arch:
-        - x64
-        - arm64
 
 dmg:
-  artifactName: "${productName}-${version}.${ext}"
-
-pkg:
   artifactName: "${productName}-${version}.${ext}"

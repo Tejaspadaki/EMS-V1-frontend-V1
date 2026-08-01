@@ -5,7 +5,10 @@
   "type": "module",
   "main": "electron/main.cjs",
   "description": "Employee Management System Desktop App",
-  "author": "Employee Management System Team",
+  "author": {
+    "name": "Novynth Labs Pvt Ltd",
+    "email": "novynthlabs@gmail.com"
+  },
   "scripts": {
     "dev": "npm run build && electron .",
     "build": "vite build",

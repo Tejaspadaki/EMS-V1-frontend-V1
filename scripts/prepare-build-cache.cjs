@@ -156,7 +156,7 @@ async function preparePackage(pkg) {
   }
 
   if (!path7za || !fs.existsSync(path7za)) {
-    console.error(`[Cache Preparation] 7za.exe not found at ${path7za}`);
+    console.error(`[Cache Preparation] 7za binary not found at ${path7za}`);
     process.exit(1);
   }
 
