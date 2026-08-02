@@ -24,6 +24,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Auto-increment build version on push
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json'));
+            const parts = pkg.version.split('.');
+            const major = parts[0] || '1';
+            const minor = parts[1] || '5';
+            pkg.version = \`\${major}.\${minor}.\${process.env.GITHUB_RUN_NUMBER || '0'}\`;
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+            console.log('[Auto Version] Set package.json version to:', pkg.version);
+          "
+
       - name: Build Windows Desktop Application
         run: npm run build:win
 
@@ -42,9 +55,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
+          protocol: ftp
           port: ${{ secrets.FTP_PORT || 21 }}
           security: loose
           log-level: verbose
-          local-dir: ./dist-electron/Windows/
-          server-dir: /public/updates/Windows/
+          local-dir: ./dist-electron/
+          server-dir: /public/updates/

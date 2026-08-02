@@ -6,6 +6,12 @@ export interface Channel {
   name: string;
   type: 'Public' | 'Private' | 'Announcement' | 'Direct' | 'Project';
   unreadCount: number;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  lastMessageSenderId?: string;
+  lastMessageType?: 'text' | 'image' | 'video' | 'file' | 'audio';
+  avatarUrl?: string;
+  isOnline?: boolean;
 }
 
 export interface ChatMessage {

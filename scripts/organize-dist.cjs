@@ -22,6 +22,12 @@ function copyFile(src, dest) {
 
 console.log('[Dist Organizer] Organizing production installers into dist-electron/ directory structure...');
 
+// Copy index.html download landing page into dist-electron root
+const publicIndexHtml = path.join(__dirname, '..', 'public', 'updates', 'index.html');
+if (fs.existsSync(publicIndexHtml)) {
+  copyFile(publicIndexHtml, path.join(distElectron, 'index.html'));
+}
+
 if (fs.existsSync(distElectron)) {
   const files = fs.readdirSync(distElectron);
   files.forEach(file => {
@@ -34,10 +40,6 @@ if (fs.existsSync(distElectron)) {
       copyFile(fullPath, path.join(winDir, file));
     } else if (file.includes('Portable') && file.endsWith('.exe')) {
       copyFile(fullPath, path.join(winDir, 'Portable.exe'));
-      copyFile(fullPath, path.join(winDir, file));
-    } else if (file.endsWith('.zip') && (file.includes('win') || file.includes('System') || file.includes('Employee'))) {
-      copyFile(fullPath, path.join(winDir, 'ZIP', file));
-      copyFile(fullPath, path.join(winDir, 'ZIP.zip'));
       copyFile(fullPath, path.join(winDir, file));
     }
 
@@ -64,10 +66,15 @@ if (fs.existsSync(distElectron)) {
     } else if (file.endsWith('.pkg')) {
       copyFile(fullPath, path.join(macDir, 'PKG', file));
       copyFile(fullPath, path.join(macDir, file));
-    } else if (file.endsWith('.zip') && (file.includes('mac') || file.includes('darwin'))) {
-      copyFile(fullPath, path.join(macDir, 'ZIP', file));
-      copyFile(fullPath, path.join(macDir, 'ZIP.zip'));
-      copyFile(fullPath, path.join(macDir, file));
+    }
+
+    // Auto-update YAML metadata files
+    if (file === 'latest.yml') {
+      copyFile(fullPath, path.join(winDir, 'latest.yml'));
+    } else if (file === 'latest-linux.yml') {
+      copyFile(fullPath, path.join(linuxDir, 'latest-linux.yml'));
+    } else if (file === 'latest-mac.yml') {
+      copyFile(fullPath, path.join(macDir, 'latest-mac.yml'));
     }
   });
 }

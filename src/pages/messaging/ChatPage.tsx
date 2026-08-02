@@ -69,6 +69,41 @@ const getAvatarColor = (name: string) => {
   return colors[idx];
 };
 
+const renderLastMessagePreview = (channel: Channel) => {
+  if (!channel.lastMessage) return <span className="text-slate-500 italic">No messages yet</span>;
+
+  switch (channel.lastMessageType) {
+    case 'image':
+      return <span className="flex items-center gap-1 text-sky-400 font-medium"><ImageIcon size={11} /> Photo</span>;
+    case 'video':
+      return <span className="flex items-center gap-1 text-purple-400 font-medium"><Video size={11} /> Video</span>;
+    case 'file':
+      return <span className="flex items-center gap-1 text-emerald-400 font-medium"><File size={11} /> Document</span>;
+    default:
+      return <span className="truncate">{channel.lastMessage}</span>;
+  }
+};
+
+const formatConversationTime = (dateString?: string) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    if (date.toDateString() === now.toDateString()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    }
+    return date.toLocaleDateString([], { month: 'numeric', day: 'numeric' });
+  } catch (e) {
+    return '';
+  }
+};
+
 
 const renderFormattedMessage = (content: string) => {
   if (!content) return null;
@@ -202,12 +237,19 @@ export const ChatPage: React.FC = () => {
   const handleAddGroupMember = async (userId: string) => {
     if (!activeChannel) return;
     try {
-      await addMember(activeChannel, userId);
+      const newMember = await addMember(activeChannel, userId);
       toast.success('Member added successfully!');
       setShowAddMemberDropdown(false);
+      if (newMember) {
+        setGroupMembers(prev => {
+          if (prev.find(m => m.UserId?.toString() === userId.toString())) return prev;
+          return [...prev, newMember];
+        });
+      }
       loadGroupSettings();
-    } catch (err) {
-      toast.error('Failed to add member');
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.error?.message || err?.message || 'Failed to add member';
+      toast.error(errorMsg);
     }
   };
 
@@ -319,9 +361,51 @@ export const ChatPage: React.FC = () => {
       });
     };
 
+    const handleConversationUpdated = (data: any) => {
+      const channelId = (data.channelId || data.chatId || data.groupId)?.toString();
+      if (!channelId) return;
+
+      const lastMsg = data.lastMessage || 'New message';
+      const msgTime = data.lastMessageTime || new Date().toISOString();
+      const msgType = data.lastMessageType || 'text';
+      const senderId = data.lastMessageSenderId;
+
+      setChannels(prevChannels => {
+        const existingIndex = prevChannels.findIndex(c => c.id.toString() === channelId);
+        if (existingIndex === -1) return prevChannels;
+
+        const target = prevChannels[existingIndex];
+        const isCurrentActive = activeChannel?.toString() === channelId;
+
+        const updated: Channel = {
+          ...target,
+          lastMessage: lastMsg,
+          lastMessageTime: msgTime,
+          lastMessageType: msgType,
+          lastMessageSenderId: senderId,
+          unreadCount: isCurrentActive ? 0 : (senderId?.toString() !== user?.id?.toString() ? target.unreadCount + 1 : target.unreadCount)
+        };
+
+        const filtered = prevChannels.filter(c => c.id.toString() !== channelId);
+        return [updated, ...filtered];
+      });
+    };
+
+    const handleGroupMemberAdded = (data: { groupId: string; member: any; addedByUserId: string }) => {
+      if (data.groupId?.toString() === activeChannel?.toString()) {
+        setGroupMembers(prev => {
+          if (prev.find(m => m.UserId?.toString() === data.member?.UserId?.toString())) return prev;
+          return [...prev, data.member];
+        });
+      }
+      getChannels().then(ch => setChannels(ch));
+    };
+
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
     socket.on('new_message', handleNewMessage);
+    socket.on('conversation_updated', handleConversationUpdated);
+    socket.on('group_member_added', handleGroupMemberAdded);
     socket.on('reaction', handleNewMessage);
 
     if (activeChannel) {
@@ -332,6 +416,8 @@ export const ChatPage: React.FC = () => {
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('new_message', handleNewMessage);
+      socket.off('conversation_updated', handleConversationUpdated);
+      socket.off('group_member_added', handleGroupMemberAdded);
       socket.off('reaction', handleNewMessage);
       if (activeChannel) {
         socket.emit('leave_channel', activeChannel);
@@ -366,6 +452,25 @@ export const ChatPage: React.FC = () => {
       isSelf: true
     };
     setMessages(prev => [...prev, tempMessage]);
+
+    // Optimistically update conversation sidebar preview and move to top
+    setChannels(prevChannels => {
+      const existingIndex = prevChannels.findIndex(c => c.id.toString() === activeChannel.toString());
+      if (existingIndex === -1) return prevChannels;
+
+      const target = prevChannels[existingIndex];
+      const updated: Channel = {
+        ...target,
+        lastMessage: content || (attachment ? attachment.name : 'Attachment'),
+        lastMessageTime: new Date().toISOString(),
+        lastMessageType: attachment ? (attachment.type as any) : 'text',
+        lastMessageSenderId: user?.id,
+        unreadCount: 0
+      };
+
+      const filtered = prevChannels.filter(c => c.id.toString() !== activeChannel.toString());
+      return [updated, ...filtered];
+    });
 
     playSendSound();
 
@@ -510,30 +615,46 @@ export const ChatPage: React.FC = () => {
                   return (
                     <button
                       key={channel.id}
-                      onClick={() => { setActiveChannel(channel.id); setShowMobileSidebar(false); }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all duration-200 cursor-pointer ${
+                      onClick={() => {
+                        setActiveChannel(channel.id);
+                        setChannels(prev => prev.map(c => c.id.toString() === channel.id.toString() ? { ...c, unreadCount: 0 } : c));
+                        setShowMobileSidebar(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-200 cursor-pointer ${
                         isActive
                           ? 'bg-indigo-600/20 text-white font-extrabold border-l-4 border-indigo-500 shadow-2xs pl-2.5'
                           : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200 font-medium'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         {channel.type === 'Direct' ? (
-                          <div className={`w-7 h-7 rounded-xl bg-gradient-to-br ${getAvatarColor(channel.name)} flex items-center justify-center text-white text-[10px] font-black shadow-xs shrink-0 ring-1 ring-white/10`}>
+                          <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${getAvatarColor(channel.name)} flex items-center justify-center text-white text-xs font-black shadow-xs shrink-0 ring-1 ring-white/10`}>
                             {getInitials(channel.name)}
                           </div>
                         ) : (
-                          <span className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-900 text-slate-400'}`}>
+                          <span className={`p-2 rounded-xl shrink-0 ${isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-900 text-slate-400'}`}>
                             {renderChannelIcon(channel.type)}
                           </span>
                         )}
-                        <span className="truncate text-xs tracking-tight">{channel.name}</span>
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="truncate text-xs tracking-tight font-semibold text-slate-200">{channel.name}</span>
+                            {channel.lastMessageTime && (
+                              <span className="text-[10px] text-slate-400 shrink-0">{formatConversationTime(channel.lastMessageTime)}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between gap-1 mt-0.5">
+                            <p className="text-[11px] text-slate-400 truncate max-w-[130px]">
+                              {renderLastMessagePreview(channel)}
+                            </p>
+                            {channel.unreadCount > 0 && (
+                              <span className="shrink-0 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] font-extrabold shadow-xs shadow-indigo-500/50">
+                                {channel.unreadCount > 9 ? '9+' : channel.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      {channel.unreadCount > 0 && (
-                        <span className="shrink-0 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center rounded-full bg-indigo-500 text-white text-[9px] font-extrabold shadow-xs shadow-indigo-500/50">
-                          {channel.unreadCount > 9 ? '9+' : channel.unreadCount}
-                        </span>
-                      )}
                     </button>
                   );
                 })}

@@ -32,9 +32,6 @@ win:
     - target: portable
       arch:
         - x64
-    - target: zip
-      arch:
-        - x64
 
 nsis:
   oneClick: false
@@ -82,10 +79,6 @@ mac:
   gatekeeperAssess: false
   target:
     - target: dmg
-      arch:
-        - x64
-        - arm64
-    - target: zip
       arch:
         - x64
         - arm64
