@@ -173,6 +173,30 @@ To build the executable desktop application (`.exe` installer / portable binary 
 
 ---
 
+## 🚀 Automated Deployment (GitHub Actions)
+
+This repository includes a production-ready GitHub Actions workflow in `.github/workflows/deploy.yml` that automatically builds and deploys the frontend web app to cPanel via FTP/FTPS.
+
+### 🔑 Required GitHub Secrets
+
+Configure the following secrets in GitHub (**Settings > Secrets and variables > Actions**):
+
+| Secret Name | Description | Example Value |
+| :--- | :--- | :--- |
+| `FTP_SERVER` | cPanel FTP server host | `ftp.yuktiyantra.com` |
+| `FTP_USERNAME` | cPanel FTP username | `ems@yuktiyantra.com` |
+| `FTP_PASSWORD` | cPanel FTP password | `your-ftp-password` |
+| `FTP_PORT` *(Optional)* | FTP Port | `21` |
+| `VITE_API_URL` *(Optional)* | Production Backend API URL | `https://ems-backend.yuktiyantra.com` |
+| `VITE_LIVEKIT_URL` *(Optional)* | LiveKit WebSocket URL | `wss://ems-pmt0pnyo.livekit.cloud` |
+
+### 🛠️ Workflow Capabilities
+
+1. **Automated Web Deployment**: Pushing changes to `main` automatically triggers Vite web build and deploys the `dist/` bundle to your cPanel hosting server.
+2. **Desktop Release Deployment**: Run manually via **Actions > Run workflow** (selecting `deploy_desktop: true`) to automatically compile Windows (`Setup.exe`, `Portable.exe`, `latest.yml`) and Linux (`AppImage`, `DEB`, `RPM`, `latest-linux.yml`) desktop binaries and publish them to the backend `/public/updates` portal directory.
+
+---
+
 ## 🤝 Contributing & Guidelines
 
 1. Create a feature branch (`git checkout -b feature/amazing-feature`)
