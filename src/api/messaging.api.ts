@@ -58,8 +58,8 @@ export const toggleReaction = async (channelId: string, messageId: string, emoji
 
 // --- Enterprise Messaging Upgrades ---
 
-export const createGroup = async (name: string, description: string) => {
-  const response = await api.post('/api/group', { name, description });
+export const createGroup = async (name: string, description: string, memberIds: (string | number)[] = []) => {
+  const response = await api.post('/api/group', { name, description, memberIds });
   return response.data.data;
 };
 

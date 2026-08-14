@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles, Monitor, Terminal, Apple } from 'lucide-react';
+import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles, Monitor, Terminal } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
 
 interface AppUpdaterModalProps {
@@ -23,16 +23,15 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
   const [checking, setChecking] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState<boolean>(false);
 
-  // Platform selection for downloads: 'windows' | 'linux' | 'mac'
-  const getInitialPlatform = (): 'windows' | 'linux' | 'mac' => {
+  // Platform selection for downloads: 'windows' | 'linux'
+  const getInitialPlatform = (): 'windows' | 'linux' => {
     if (typeof navigator === 'undefined') return 'windows';
     const ua = navigator.userAgent;
-    if (/mac|darwin/i.test(ua)) return 'mac';
     if (/linux/i.test(ua)) return 'linux';
     return 'windows';
   };
 
-  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux' | 'mac'>(getInitialPlatform());
+  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux'>(getInitialPlatform());
   const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
   useEffect(() => {
@@ -138,29 +137,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
         file: `Employee Management System-${targetVersion}.x86_64.rpm`,
         path: `/updates/Linux/Employee%20Management%20System-${targetVersion}.x86_64.rpm`
       }
-    ],
-    mac: [
-      {
-        name: 'DMG Disk Image (.dmg)',
-        badge: 'Universal Mac',
-        desc: 'Standard macOS installer for Intel & Apple Silicon (M1/M2/M3)',
-        file: `Employee Management System-${targetVersion}.dmg`,
-        path: `/updates/macOS/Employee%20Management%20System-${targetVersion}.dmg`
-      },
-      {
-        name: 'ZIP Archive (.zip)',
-        badge: 'Portable App',
-        desc: 'Compressed .app bundle for direct drag-and-drop',
-        file: `Employee Management System-${targetVersion}-mac.zip`,
-        path: `/updates/macOS/Employee%20Management%20System-${targetVersion}-mac.zip`
-      },
-      {
-        name: 'PKG Installer (.pkg)',
-        badge: 'System Package',
-        desc: 'Standard macOS system package installer',
-        file: `Employee Management System-${targetVersion}.pkg`,
-        path: `/updates/macOS/Employee%20Management%20System-${targetVersion}.pkg`
-      }
     ]
   };
 
@@ -251,17 +227,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
                 <Terminal size={15} />
                 Linux
               </button>
-              <button
-                onClick={() => setSelectedPlatform('mac')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
-                  selectedPlatform === 'mac'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Apple size={15} />
-                macOS
-              </button>
             </div>
 
             {/* Electron auto-update prompt */}
@@ -286,7 +251,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   {selectedPlatform === 'windows' && 'Windows Packages (.exe / .zip)'}
                   {selectedPlatform === 'linux' && 'Linux Packages (.AppImage / .deb / .rpm)'}
-                  {selectedPlatform === 'mac' && 'macOS Packages (.dmg / .zip / .pkg)'}
                 </h4>
                 <span className="text-[11px] font-medium text-slate-400">v{targetVersion}</span>
               </div>
@@ -321,7 +285,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
 
             {/* Footer Notice */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Supports Windows 10/11, Linux & macOS (Intel & Apple Silicon)</span>
+              <span>Supports Windows 10/11 & Linux</span>
               <button
                 onClick={handleClose}
                 className="font-semibold text-slate-700 hover:text-indigo-600 transition-colors"

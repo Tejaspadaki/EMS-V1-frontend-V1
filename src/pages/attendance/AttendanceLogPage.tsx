@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { getEmployeeDetails, type AttendanceLogEntry } from '../../api/employees.api';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Calendar, Clock, AlertCircle, Activity, LogOut, Loader, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, Activity, LogOut, Loader, CheckCircle2, Camera, ShieldCheck } from 'lucide-react';
 import { submitCheckOut } from '../../api/attendance.api';
 
 export const AttendanceLogPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const [logs, setLogs] = useState<AttendanceLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,15 +91,23 @@ export const AttendanceLogPage: React.FC = () => {
             Attendance Log
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Review your face check-in history and face login events.
+            Review your face check-in history and AI biometric verification events.
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           <Button 
-            variant={hasCheckedOutToday ? 'outline' : 'accent'}
+            variant="accent"
+            onClick={() => navigate('/attendance/check-in')}
+            className="px-5 py-2.5 font-semibold transition-all flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+          >
+            <Camera size={16} />
+            Face Check-In
+          </Button>
+          <Button 
+            variant={hasCheckedOutToday ? 'outline' : 'outline'}
             onClick={handleCheckOut}
             disabled={checkingOut || hasCheckedOutToday}
-            className="w-full md:w-auto px-5 py-2.5 font-semibold shrink-0 transition-all flex items-center justify-center gap-2"
+            className="px-5 py-2.5 font-semibold shrink-0 transition-all flex items-center justify-center gap-2 border-slate-300 hover:bg-slate-50"
           >
             {checkingOut ? (
               <>
@@ -119,6 +129,27 @@ export const AttendanceLogPage: React.FC = () => {
         </div>
       </div>
 
+      {/* AI Facial Verification Banner */}
+      <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between gap-4 text-indigo-900">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-600 text-white rounded-xl">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <h4 className="font-bold text-xs uppercase tracking-wider text-indigo-950">Facial Scan Authentication Active</h4>
+            <p className="text-xs text-indigo-700 mt-0.5">
+              Attendance check-ins are verified exclusively using AI Face Recognition and camera scanning.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/attendance/check-in')}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-colors shrink-0 shadow-sm flex items-center gap-1.5"
+        >
+          <Camera size={14} /> Scan Face
+        </button>
+      </div>
+
       {error ? (
         <Card className="border-rose-100 bg-rose-50/50">
           <CardContent className="p-5 flex items-start gap-3">
@@ -131,14 +162,22 @@ export const AttendanceLogPage: React.FC = () => {
         </Card>
       ) : logs.length === 0 ? (
         <Card className="border-dashed border-2 border-slate-200">
-          <CardContent className="p-12 text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-              <Calendar className="text-slate-400" size={24} />
+          <CardContent className="p-12 text-center space-y-4">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <Camera size={28} />
             </div>
-            <h3 className="font-semibold text-slate-800 text-sm">No records found</h3>
-            <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-              You haven't completed any face check-ins yet. Head over to the Check-In tab to log your attendance.
-            </p>
+            <div>
+              <h3 className="font-bold text-slate-800 text-base">No attendance records yet</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                Attendance check-in requires a facial scan. Click below to launch the camera and perform your daily face check-in.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/attendance/check-in')}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all active:scale-95"
+            >
+              <Camera size={16} /> Scan Face to Check In
+            </button>
           </CardContent>
         </Card>
       ) : (

@@ -71,17 +71,3 @@ deb:
 rpm:
   artifactName: "${productName}-${version}.x86_64.${ext}"
 
-mac:
-  category: public.app-category.business
-  icon: build/icon.icns
-  identity: null
-  hardenedRuntime: false
-  gatekeeperAssess: false
-  target:
-    - target: dmg
-      arch:
-        - x64
-        - arm64
-
-dmg:
-  artifactName: "${productName}-${version}.${ext}"

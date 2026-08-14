@@ -108,8 +108,8 @@ export const AllRequestsPage: React.FC = () => {
                 
                 <div className="flex items-center gap-6">
                   <div className="flex flex-col items-end gap-1.5 hidden md:flex">
-                    <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Tier {req.currentTier}</span>
-                    <TierProgress currentTier={req.currentTier} />
+                    <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Approval Progress</span>
+                    <TierProgress currentTier={req.currentTier} status={req.status} auditTrail={req.auditTrail} mode="inline" />
                   </div>
                   
                   <StatusChip 
@@ -137,7 +137,11 @@ export const AllRequestsPage: React.FC = () => {
               </div>
 
               {expandedId === req.id && (
-                <div className="px-5 pb-5 pt-2 border-t border-[var(--color-border)] bg-gray-50/30">
+                <div className="px-5 pb-5 pt-2 border-t border-[var(--color-border)] bg-gray-50/30 space-y-4">
+                  <div className="pt-2">
+                    <TierProgress currentTier={req.currentTier} status={req.status} auditTrail={req.auditTrail} mode="detailed" />
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
                       <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-2">Request Details</h4>

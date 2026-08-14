@@ -7,7 +7,7 @@ export interface Meeting {
   startTime: string;
   endTime: string;
   meetingLink?: string;
-  status: 'scheduled' | 'ongoing' | 'completed' | 'cancelled';
+  notes?: string;
   organizerId: string;
   organizer: { id: string; name: string; email: string };
   participants: {
@@ -17,6 +17,16 @@ export interface Meeting {
     user: { id: string; name: string; email: string };
   }[];
 }
+
+export const getMeetingNotes = async (meetingId: string) => {
+  const response = await api.get(`/meetings/${meetingId}/notes`);
+  return response.data.data;
+};
+
+export const saveMeetingNotes = async (meetingId: string, notes: string) => {
+  const response = await api.post(`/meetings/${meetingId}/notes`, { notes });
+  return response.data;
+};
 
 export const getMyMeetings = async (): Promise<Meeting[]> => {
   const response = await api.get('/meetings');

@@ -4,10 +4,9 @@ const path = require('path');
 const distElectron = path.join(__dirname, '..', 'dist-electron');
 const winDir = path.join(distElectron, 'Windows');
 const linuxDir = path.join(distElectron, 'Linux');
-const macDir = path.join(distElectron, 'macOS');
 
 // Ensure base target subdirectories exist
-[winDir, linuxDir, macDir].forEach(dir => {
+[winDir, linuxDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -58,23 +57,11 @@ if (fs.existsSync(distElectron)) {
       copyFile(fullPath, path.join(linuxDir, file));
     }
 
-    // macOS Installers
-    if (file.endsWith('.dmg')) {
-      copyFile(fullPath, path.join(macDir, 'DMG', file));
-      copyFile(fullPath, path.join(macDir, 'DMG.dmg'));
-      copyFile(fullPath, path.join(macDir, file));
-    } else if (file.endsWith('.pkg')) {
-      copyFile(fullPath, path.join(macDir, 'PKG', file));
-      copyFile(fullPath, path.join(macDir, file));
-    }
-
     // Auto-update YAML metadata files
     if (file === 'latest.yml') {
       copyFile(fullPath, path.join(winDir, 'latest.yml'));
     } else if (file === 'latest-linux.yml') {
       copyFile(fullPath, path.join(linuxDir, 'latest-linux.yml'));
-    } else if (file === 'latest-mac.yml') {
-      copyFile(fullPath, path.join(macDir, 'latest-mac.yml'));
     }
   });
 }

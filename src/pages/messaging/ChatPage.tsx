@@ -178,18 +178,25 @@ export const ChatPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any>(null);
   const [searching, setSearching] = useState(false);
 
+  const [selectedNewGroupMembers, setSelectedNewGroupMembers] = useState<(string | number)[]>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = useState('');
+
   const handleCreateGroupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!groupName.trim()) return;
     try {
-      const newGroup = await createGroup(groupName, groupDescription);
-      toast.success(`Group "${groupName}" created!`);
+      const newGroup = await createGroup(groupName, groupDescription, selectedNewGroupMembers);
+      toast.success(`Group "${groupName}" created with ${selectedNewGroupMembers.length} member(s)!`);
       setShowCreateGroupModal(false);
       setGroupName('');
       setGroupDescription('');
+      setSelectedNewGroupMembers([]);
+      setMemberSearchQuery('');
       const data = await getChannels();
       setChannels(data);
-      setActiveChannel(newGroup.groupId.toString());
+      if (newGroup?.groupId) {
+        setActiveChannel(newGroup.groupId.toString());
+      }
     } catch (err) {
       toast.error('Failed to create group');
     }
@@ -592,7 +599,13 @@ export const ChatPage: React.FC = () => {
                 {type === 'Private' && (
                   <div className="flex items-center gap-2 text-indigo-400">
                     <button
-                      onClick={(e) => { e.stopPropagation(); setShowCreateGroupModal(true); }}
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if (allUsersList.length === 0) {
+                          getAllUsersList().then(users => setAllUsersList(users || [])).catch(() => {});
+                        }
+                        setShowCreateGroupModal(true); 
+                      }}
                       className="hover:text-indigo-300 transition-colors text-xs font-extrabold cursor-pointer"
                       title="Create Group"
                     >
@@ -1160,10 +1173,105 @@ export const ChatPage: React.FC = () => {
               placeholder="What this channel is about..."
               value={groupDescription}
               onChange={e => setGroupDescription(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 text-sm px-4 py-2.5 rounded-xl outline-none focus:border-indigo-500 h-24 resize-none"
+              className="w-full bg-slate-50 border border-slate-200 text-sm px-4 py-2.5 rounded-xl outline-none focus:border-indigo-500 h-20 resize-none"
             />
           </div>
-          <div className="flex justify-end gap-2.5 pt-2">
+
+          {/* Add Members Section */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-500 uppercase">
+                Add Initial Members ({selectedNewGroupMembers.length} selected)
+              </label>
+              {selectedNewGroupMembers.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedNewGroupMembers([])}
+                  className="text-[10px] text-indigo-600 font-bold hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {/* Selected Member Chips */}
+            {selectedNewGroupMembers.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2 max-h-24 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200">
+                {selectedNewGroupMembers.map((id) => {
+                  const u = allUsersList.find(user => String(user.id) === String(id));
+                  return (
+                    <span key={id} className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-lg font-medium">
+                      {u ? u.name : `User ${id}`}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedNewGroupMembers(prev => prev.filter(mId => String(mId) !== String(id)))}
+                        className="hover:text-indigo-950 font-bold ml-1 text-sm leading-none"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Member Search Bar */}
+            <input
+              type="text"
+              placeholder="Search employees to add..."
+              value={memberSearchQuery}
+              onChange={e => setMemberSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 text-xs px-3 py-2 rounded-xl outline-none focus:border-indigo-500 mb-2"
+            />
+
+            {/* Scrollable Member Checklist */}
+            <div className="max-h-44 overflow-y-auto border border-slate-200 rounded-xl p-2 bg-slate-50/40 space-y-1 custom-scrollbar">
+              {allUsersList.filter(u => 
+                !memberSearchQuery.trim() || 
+                u.name?.toLowerCase().includes(memberSearchQuery.toLowerCase()) || 
+                u.email?.toLowerCase().includes(memberSearchQuery.toLowerCase())
+              ).map((u) => {
+                const isSelected = selectedNewGroupMembers.some(id => String(id) === String(u.id));
+                return (
+                  <label
+                    key={u.id}
+                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors text-xs ${
+                      isSelected ? 'bg-indigo-50/80 text-indigo-900 font-semibold border border-indigo-200/60' : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                      <div className="w-7 h-7 rounded-full bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
+                        {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div className="truncate">
+                        <p className="font-semibold text-slate-800 text-xs truncate">{u.name}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{u.email}</p>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedNewGroupMembers(prev => [...prev, u.id]);
+                        } else {
+                          setSelectedNewGroupMembers(prev => prev.filter(id => String(id) !== String(u.id)));
+                        }
+                      }}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                    />
+                  </label>
+                );
+              })}
+              {allUsersList.length === 0 && (
+                <div className="text-center py-4 text-xs text-slate-400 font-medium">
+                  Loading employee directory...
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setShowCreateGroupModal(false)}
@@ -1173,9 +1281,9 @@ export const ChatPage: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700"
+              className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 shadow-sm"
             >
-              Create Channel
+              Create Group
             </button>
           </div>
         </form>

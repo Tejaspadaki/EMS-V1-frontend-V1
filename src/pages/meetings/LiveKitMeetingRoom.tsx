@@ -18,6 +18,7 @@ import { useMeetingStore } from '../../store/meetingStore';
 import { toast } from '../../utils/toast';
 import { Hand, EyeOff, Eye, Crown, FileText, BarChart2, Maximize2, Minimize2, PenTool, StopCircle, Video, UserPlus, Search } from 'lucide-react';
 import { getChannels, createMessage } from '../../api/messaging.api';
+import { getMeetingNotes, saveMeetingNotes } from '../../api/meetings.api';
 import { Modal } from '../../components/ui/Modal';
 
 const MeetingInviteButton = ({ roomId }: { roomId: string }) => {
@@ -252,10 +253,26 @@ const HostControls = ({ roomId, token }: { roomId: string, token: string }) => {
   );
 };
 
-const SharedNotes = () => {
+const SharedNotes = ({ roomId }: { roomId?: string }) => {
   const [text, setText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const { send, message } = useDataChannel('meeting-notes');
+  const textRef = useRef(text);
+  textRef.current = text;
 
+  // Fetch existing saved notes from DB on mount
+  useEffect(() => {
+    if (!roomId) return;
+    getMeetingNotes(roomId)
+      .then(data => {
+        if (data && typeof data.notes === 'string' && data.notes.trim()) {
+          setText(data.notes);
+        }
+      })
+      .catch(console.error);
+  }, [roomId]);
+
+  // Handle incoming data channel updates from other room participants
   useEffect(() => {
     if (message) {
       const decoder = new TextDecoder();
@@ -263,6 +280,32 @@ const SharedNotes = () => {
       setText(decoded);
     }
   }, [message]);
+
+  // Debounced auto-save to DB when typing
+  useEffect(() => {
+    if (!roomId || !text) return;
+    const timer = setTimeout(async () => {
+      try {
+        setIsSaving(true);
+        await saveMeetingNotes(roomId, text);
+      } catch (e) {
+        console.error('Failed to auto-save meeting notes:', e);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [text, roomId]);
+
+  // Auto-save on unmount (when user leaves / meeting ends)
+  useEffect(() => {
+    return () => {
+      if (roomId && textRef.current) {
+        saveMeetingNotes(roomId, textRef.current).catch(console.error);
+      }
+    };
+  }, [roomId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
@@ -273,12 +316,19 @@ const SharedNotes = () => {
 
   return (
     <div className="flex flex-col h-full bg-gray-950 p-4">
-      <h3 className="text-gray-300 font-semibold mb-2 flex items-center gap-2"><FileText size={18} /> Shared Scratchpad</h3>
-      <p className="text-xs text-gray-500 mb-4">Anyone can type here. Notes disappear when the meeting ends.</p>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-gray-300 font-semibold flex items-center gap-2 text-sm"><FileText size={18} /> Meeting Notes</h3>
+        {isSaving ? (
+          <span className="text-[10px] text-amber-400 font-medium animate-pulse">Saving...</span>
+        ) : (
+          <span className="text-[10px] text-emerald-400 font-medium">Auto-saved to DB</span>
+        )}
+      </div>
+      <p className="text-xs text-gray-500 mb-4">Collaborative notes auto-save to the database and are stored for past reference.</p>
       <textarea
         value={text}
         onChange={handleChange}
-        placeholder="Type collaborative notes here..."
+        placeholder="Type collaborative meeting minutes & notes here..."
         className="flex-1 bg-gray-900 border border-gray-800 rounded-xl p-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono text-sm shadow-inner"
       />
     </div>
@@ -636,6 +686,50 @@ export const LiveKitMeetingRoom: React.FC<{ roomId?: string }> = ({ roomId: prop
         .pip-mode .lk-participant-tile .lk-focus-toggle-button { display: none !important; }
         .pip-mode .lk-participant-tile .lk-participant-metadata { opacity: 0.5; }
         .pip-mode .lk-grid-layout { gap: 2px !important; padding: 0 !important; }
+
+        /* Hide VideoConference internal duplicate chat overlay */
+        .lk-video-conference .lk-chat {
+          display: none !important;
+        }
+
+        /* Ensure only our custom sidebar chat is displayed */
+        .lk-chat-container .lk-chat {
+          display: flex !important;
+          background-color: #030712 !important;
+          border: none !important;
+          height: 100% !important;
+        }
+
+        /* Remove duplicate LiveKit chat header and bottom control bar toggle button */
+        .lk-chat-header { display: none !important; }
+        .lk-chat-toggle-button { display: none !important; }
+
+        /* Sleek modern Dark Mode styling for LiveKit Chat */
+        .lk-chat-form {
+          padding: 12px !important;
+          background-color: #0b0f19 !important;
+          border-top: 1px solid #1f2937 !important;
+        }
+        .lk-chat-form-input {
+          background-color: #111827 !important;
+          border: 1px solid #374151 !important;
+          border-radius: 12px !important;
+          color: #f9fafb !important;
+          font-size: 13px !important;
+          padding: 8px 12px !important;
+        }
+        .lk-chat-form-input:focus {
+          border-color: #6366f1 !important;
+          outline: none !important;
+        }
+        .lk-chat-form-button {
+          background-color: #6366f1 !important;
+          border-radius: 10px !important;
+          color: #ffffff !important;
+        }
+        .lk-chat-messages {
+          padding: 12px !important;
+        }
       `}</style>
       <LiveKitRoom
         video={false}
@@ -765,7 +859,7 @@ export const LiveKitMeetingRoom: React.FC<{ roomId?: string }> = ({ roomId: prop
                 {sidebarTab === 'chat' ? (
                   <Chat />
                 ) : sidebarTab === 'notes' ? (
-                  <SharedNotes />
+                  <SharedNotes roomId={roomId!} />
                 ) : (
                   <LiveMeetingPolls roomId={roomId!} isHost={isHost} />
                 )}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getStandups, excuseStandup, type StandupRecord } from '../../api/attendance.api';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
-import { AlertTriangle, Calendar, Check, X, Info } from 'lucide-react';
+import { Calendar, Check, X, Info } from 'lucide-react';
 import { toast } from '../../utils/toast';
 
 export const StandupsTrackerPage: React.FC = () => {
@@ -25,11 +25,6 @@ export const StandupsTrackerPage: React.FC = () => {
   useEffect(() => {
     fetchStandups();
   }, []);
-
-  const unexcusedMisses = records.filter(
-    r => r.status === 'Missed' || r.status === 'MISSED' || r.status === 'absent'
-  ).length;
-  const showWarning = unexcusedMisses >= 3;
 
   const handleExcuseSubmit = async () => {
     if (!excuseModal.date || !excuseModal.reason) return;
@@ -61,18 +56,6 @@ export const StandupsTrackerPage: React.FC = () => {
           Intimate Absence
         </Button>
       </div>
-
-      {showWarning && (
-        <div className="mb-6 p-4 rounded-lg bg-[var(--color-status-inactive-bg)] border border-[#C62828] flex items-start gap-3 shadow-sm">
-          <AlertTriangle className="text-[var(--color-status-inactive-text)] shrink-0 mt-0.5" size={24} />
-          <div>
-            <h4 className="font-bold text-[var(--color-status-inactive-text)] text-lg">Warning: Excessive Misses</h4>
-            <p className="text-sm text-[var(--color-status-inactive-text)] mt-1 font-medium">
-              You have accumulated {unexcusedMisses} unexcused standup misses. Please contact your Team Lead immediately to resolve this, or further disciplinary action may be taken automatically.
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="ems-card overflow-hidden">
         <div className="overflow-x-auto">

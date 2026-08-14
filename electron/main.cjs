@@ -71,6 +71,18 @@ function createWindow() {
   // Initialize Automatic Application Updater
   initAutoUpdater(mainWindow);
 
+  // Allow cross-origin media & file loading in Electron Desktop window
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const headers = details.responseHeaders || {};
+    headers['Access-Control-Allow-Origin'] = ['*'];
+    headers['Cross-Origin-Resource-Policy'] = ['cross-origin'];
+    headers['Cross-Origin-Embedder-Policy'] = ['unsafe-none'];
+    delete headers['content-security-policy'];
+    delete headers['Content-Security-Policy'];
+    delete headers['CONTENT-SECURITY-POLICY'];
+    callback({ responseHeaders: headers });
+  });
+
   // Grant camera/mic media permissions dynamically
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
     if (permission === 'media') {

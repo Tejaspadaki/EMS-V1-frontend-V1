@@ -138,12 +138,12 @@ export const SettingsPage: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-slate-900">EMS Desktop Apps</h2>
-                    <p className="text-sm text-slate-500">Download native applications for Windows, Linux, and macOS.</p>
+                    <p className="text-sm text-slate-500">Download native applications for Windows and Linux.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Windows Card */}
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
                   <div className="flex items-center justify-between">
@@ -211,42 +211,6 @@ export const SettingsPage: React.FC = () => {
                         className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
                       >
                         RPM (Fedora)
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                {/* macOS Card */}
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm text-slate-900 flex items-center gap-2">
-                      🍎 macOS Apps
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-800">Intel & Apple Silicon</span>
-                  </div>
-                  <p className="text-xs text-slate-500">Available as DMG disk image, portable ZIP, or system PKG package.</p>
-                  <div className="space-y-1.5 pt-1">
-                    <a
-                      href="/updates/macOS/Employee%20Management%20System-1.4.0.dmg"
-                      download="Employee Management System-1.4.0.dmg"
-                      className="block text-center py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-colors"
-                    >
-                      Download DMG (.dmg)
-                    </a>
-                    <div className="flex gap-2">
-                      <a
-                        href="/updates/macOS/Employee%20Management%20System-1.4.0-mac.zip"
-                        download="Employee Management System-1.4.0-mac.zip"
-                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
-                      >
-                        ZIP Archive
-                      </a>
-                      <a
-                        href="/updates/macOS/Employee%20Management%20System-1.4.0.pkg"
-                        download="Employee Management System-1.4.0.pkg"
-                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
-                      >
-                        PKG Installer
                       </a>
                     </div>
                   </div>

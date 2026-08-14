@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Plus, Video, Users, CheckCircle, XCircle, MapPin, Play, Zap, ArrowRight, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Plus, Video, Users, CheckCircle, XCircle, MapPin, Play, Zap, ArrowRight, Sparkles, FileText } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
-import { getMyMeetings, createMeeting, updateParticipantStatus, updateMeetingStatus, type Meeting, startInstantMeeting, downloadCalendarInvite } from '../../api/meetings.api';
+import { getMyMeetings, createMeeting, updateParticipantStatus, updateMeetingStatus, type Meeting, startInstantMeeting, downloadCalendarInvite, getMeetingNotes, saveMeetingNotes } from '../../api/meetings.api';
 
 import { getChannels, createMessage } from '../../api/messaging.api';
 import { getAllUsers } from '../../api/admin.api';
@@ -52,6 +52,37 @@ export const MeetingsPage: React.FC = () => {
     participants: [] as string[]
   });
   const [isInstantLoading, setIsInstantLoading] = useState(false);
+
+  const [selectedNotesMeeting, setSelectedNotesMeeting] = useState<Meeting | null>(null);
+  const [notesContent, setNotesContent] = useState('');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+
+  const handleOpenNotes = async (meeting: Meeting) => {
+    setSelectedNotesMeeting(meeting);
+    setNotesContent(meeting.notes || '');
+    try {
+      const data = await getMeetingNotes(meeting.id);
+      if (data && typeof data.notes === 'string') {
+        setNotesContent(data.notes);
+      }
+    } catch (e) {
+      console.error('Error fetching meeting notes:', e);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    if (!selectedNotesMeeting) return;
+    try {
+      setIsSavingNotes(true);
+      await saveMeetingNotes(selectedNotesMeeting.id, notesContent);
+      toast.success('Meeting notes saved!');
+      fetchData();
+    } catch (e) {
+      toast.error('Failed to save meeting notes');
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -404,9 +435,18 @@ export const MeetingsPage: React.FC = () => {
                     )}
                     <button
                       onClick={() => handleDownloadCalendar(meeting.id)}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-2xl text-xs font-bold transition-all hover:shadow-sm border border-slate-200"
+                      className="flex-none flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-2xl text-xs font-bold transition-all hover:shadow-sm border border-slate-200"
                     >
                       <Calendar size={13} /> ICS
+                    </button>
+                    <button
+                      onClick={() => handleOpenNotes(meeting)}
+                      className={`flex-none flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl text-xs font-bold transition-all border ${
+                        meeting.notes ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                      title="View or edit meeting notes"
+                    >
+                      <FileText size={13} /> {meeting.notes ? 'Notes' : '+ Note'}
                     </button>
                   </div>
 
@@ -664,6 +704,58 @@ export const MeetingsPage: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Past Meeting Notes Modal */}
+      {selectedNotesMeeting && (
+        <Modal
+          isOpen={!!selectedNotesMeeting}
+          onClose={() => setSelectedNotesMeeting(null)}
+          title={`Meeting Notes: ${selectedNotesMeeting.title}`}
+        >
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div>
+                <p className="font-bold text-slate-800">{formatDate(selectedNotesMeeting.startTime)}</p>
+                <p>{formatTime(selectedNotesMeeting.startTime)} – {formatTime(selectedNotesMeeting.endTime)}</p>
+              </div>
+              <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-bold rounded-lg text-[10px] uppercase">
+                {selectedNotesMeeting.status}
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Collaborative Meeting Notes & Minutes</label>
+              <textarea
+                value={notesContent}
+                onChange={e => setNotesContent(e.target.value)}
+                placeholder="No notes recorded yet for this meeting..."
+                className="w-full bg-white border border-slate-200 text-sm p-4 rounded-xl outline-none focus:border-indigo-500 font-mono min-h-[200px] resize-y shadow-inner text-slate-800"
+              />
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+              <span className="text-[11px] text-slate-400">Saved in database linked to meeting ID</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedNotesMeeting(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveNotes}
+                  disabled={isSavingNotes}
+                  className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 shadow-sm disabled:opacity-50 font-bold"
+                >
+                  {isSavingNotes ? 'Saving...' : 'Save Notes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
 
     </div>
   );

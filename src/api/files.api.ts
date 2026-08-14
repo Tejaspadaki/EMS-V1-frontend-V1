@@ -24,3 +24,12 @@ export const uploadFile = async (type: 'image' | 'document' | 'recording', file:
   });
   return response.data.data;
 };
+
+export const fetchFileBlobUrl = async (type: 'image' | 'document' | 'recording', id: string): Promise<string> => {
+  const response = await api.get(`/upload/${type}/${id}`, { responseType: 'blob' });
+  const blob = response.data instanceof Blob 
+    ? response.data 
+    : new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' });
+  return URL.createObjectURL(blob);
+};
+
