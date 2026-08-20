@@ -35,8 +35,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   // Collapsible section state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
     try {
-      const saved = localStorage.getItem('novynth_sidebar_collapsed_sections');
-      return saved ? JSON.parse(saved) : {};
+      const savedNew = localStorage.getItem('novynth_sidebar_collapsed_sections');
+      if (savedNew) return JSON.parse(savedNew);
+
+      // Migrate from old key if present
+      const savedOld = localStorage.getItem('ems_sidebar_collapsed_sections');
+      if (savedOld) {
+        try {
+          localStorage.setItem('novynth_sidebar_collapsed_sections', savedOld);
+        } catch (err) {
+          console.error('Failed to migrate sidebar state to new key', err);
+        }
+        return JSON.parse(savedOld);
+      }
+
+      return {};
     } catch {
       return {};
     }

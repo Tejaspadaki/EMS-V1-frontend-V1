@@ -36,7 +36,7 @@ const MeetingInviteButton = ({ roomId }: { roomId: string }) => {
   const handleInvite = async (channelId: string) => {
     setIsSending(true);
     try {
-      await createMessage(channelId, `Join my meeting here: ems://meeting/${roomId}`);
+      await createMessage(channelId, `Join my meeting here: novynth://meeting/${roomId}`);
       toast.success('Invite sent successfully!');
       setIsOpen(false);
     } catch (e) {

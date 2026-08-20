@@ -381,12 +381,12 @@
       border-bottom: 1px solid #E2E8F0;
     }
   }
-  .ems-main {
+  .novynth-main {
     margin-left: 0 !important;
     padding: 16px;
   }
 
-  .ems-sidebar-backdrop {
+  .novynth-sidebar-backdrop {
     display: block;
     position: fixed;
     inset: 0;
@@ -395,13 +395,13 @@
     z-index: 95;
   }
 
-  .ems-topbar-user-info {
+  .novynth-topbar-user-info {
     display: none;
   }
 }
 
 @media (max-width: 520px) {
-  .ems-public-profile-header {
+  .novynth-public-profile-header {
     flex-direction: column;
     text-align: center;
     gap: 12px;
@@ -412,18 +412,18 @@
   }
 }
 
-.ems-diff-split {
+.novynth-diff-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
-.ems-diff-left {
+.novynth-diff-left {
   border-right: 1px solid #E2E8F0;
 }
 @media (max-width: 520px) {
-  .ems-diff-split {
+  .novynth-diff-split {
     grid-template-columns: 1fr;
   }
-  .ems-diff-left {
+  .novynth-diff-left {
     border-right: none;
     border-bottom: 1px solid #E2E8F0;
   }
