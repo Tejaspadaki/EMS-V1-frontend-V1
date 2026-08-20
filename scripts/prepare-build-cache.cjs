@@ -160,6 +160,16 @@ async function preparePackage(pkg) {
     process.exit(1);
   }
 
+  // Ensure 7za executable permissions on Unix/Linux/macOS systems
+  if (process.platform !== 'win32') {
+    try {
+      fs.chmodSync(path7za, 0o755);
+      execSync(`chmod +x "${path7za}"`, { stdio: 'ignore' });
+    } catch (chmodErr) {
+      // Safe to ignore if permissions are already set
+    }
+  }
+
   // 4. Extract archive
   console.log(`[Cache Preparation] Extracting ${archiveName} to temp folder...`);
   const extractArgs = ['x', '-y', archivePath, `-o${tempTargetDir}`];
@@ -174,9 +184,22 @@ async function preparePackage(pkg) {
     execFileSync(path7za, extractArgs, { stdio: 'inherit' });
     console.log(`[Cache Preparation] Extraction completed.`);
   } catch (err) {
-    console.error(`[Cache Preparation] Extraction failed:`, err.message);
-    fs.rmSync(archivePath, { force: true }); // delete corrupt archive
-    process.exit(1);
+    if (process.platform !== 'win32' && err.code === 'EACCES') {
+      try {
+        console.log(`[Cache Preparation] EACCES detected on Linux/macOS. Fixing permissions and retrying extraction...`);
+        execSync(`chmod +x "${path7za}"`, { stdio: 'ignore' });
+        execFileSync(path7za, extractArgs, { stdio: 'inherit' });
+        console.log(`[Cache Preparation] Extraction completed after permissions fix.`);
+      } catch (retryErr) {
+        console.error(`[Cache Preparation] Extraction retry failed:`, retryErr.message);
+        fs.rmSync(archivePath, { force: true });
+        process.exit(1);
+      }
+    } else {
+      console.error(`[Cache Preparation] Extraction failed:`, err.message);
+      fs.rmSync(archivePath, { force: true }); // delete corrupt archive
+      process.exit(1);
+    }
   }
 
   // 5. Rename temporary directory to final location with retries
