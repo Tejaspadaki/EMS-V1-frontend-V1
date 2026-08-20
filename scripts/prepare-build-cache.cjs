@@ -40,7 +40,7 @@ const cacheRoot = path.join(
   'Cache'
 );
 
-// Kill lingering Electron processes to prevent file lock errors
+// Kill lingering Electron instances to prevent file lock errors
 function killElectronProcesses() {
   console.log('[Cache Preparation] Checking for running Electron instances...');
   try {
@@ -48,8 +48,10 @@ function killElectronProcesses() {
       try { execSync('taskkill /f /im electron.exe', { stdio: 'ignore' }); } catch (e) {}
       try { execSync('taskkill /f /im "Employee Management System.exe"', { stdio: 'ignore' }); } catch (e) {}
     } else {
-      try { execSync('pkill -f electron || true', { stdio: 'ignore' }); } catch (e) {}
-      try { execSync('pkill -f "Employee Management System" || true', { stdio: 'ignore' }); } catch (e) {}
+      // Use exact process name matching (-x) instead of full command line match (-f)
+      // to avoid matching 'npm run electron:prepare-cache' and killing the runner process (SIGTERM / Exit 143)
+      try { execSync('pkill -x electron || true', { stdio: 'ignore' }); } catch (e) {}
+      try { execSync('pkill -x "Employee Management System" || true', { stdio: 'ignore' }); } catch (e) {}
     }
     console.log('[Cache Preparation] Terminated active Electron processes to unlock build files.');
   } catch (e) {
