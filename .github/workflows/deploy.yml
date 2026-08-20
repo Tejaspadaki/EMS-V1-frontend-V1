@@ -1,4 +1,4 @@
-name: Deploy EMS Frontend & Desktop Updates
+name: Novynth EMS Frontend & Desktop Updates Workflow
 
 on:
   push:
