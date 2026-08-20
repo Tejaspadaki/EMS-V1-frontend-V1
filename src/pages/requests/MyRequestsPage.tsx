@@ -58,7 +58,7 @@ export const MyRequestsPage: React.FC = () => {
 
       <div className="space-y-4">
         {requests.map((req) => (
-          <div key={req.id} className="ems-card overflow-hidden transition-all">
+          <div key={req.id} className="novynth-card overflow-hidden transition-all">
             <div 
               className="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50"
               onClick={() => toggleExpand(req.id)}

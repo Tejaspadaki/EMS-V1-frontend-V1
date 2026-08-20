@@ -83,7 +83,7 @@ export const NewRequestPage: React.FC = () => {
     <div className="max-w-2xl mx-auto">
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">New Request</h2>
       
-      <div className="ems-card p-6">
+      <div className="novynth-card p-6">
         <div className="flex bg-[var(--color-canvas)] p-1 rounded-lg mb-6 w-full max-w-sm">
           <button 
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${type === 'Leave' ? 'bg-white shadow-sm text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}`}
@@ -137,7 +137,7 @@ export const NewRequestPage: React.FC = () => {
               <div className="mt-4">
                 <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Reason (Optional)</label>
                 <textarea 
-                  className="ems-input w-full min-h-[80px]"
+                  className="novynth-input w-full min-h-[80px]"
                   placeholder="Enter the reason for your leave..."
                   value={formData.reason}
                   onChange={e => setFormData({ ...formData, reason: e.target.value })}
@@ -170,7 +170,7 @@ export const NewRequestPage: React.FC = () => {
                 <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Deliverables</label>
                 <textarea 
                   required
-                  className="ems-input w-full min-h-[80px]"
+                  className="novynth-input w-full min-h-[80px]"
                   placeholder="List the specific tasks you will accomplish while working from home..."
                   value={formData.deliverables}
                   onChange={e => setFormData({ ...formData, deliverables: e.target.value })}
@@ -191,7 +191,7 @@ export const NewRequestPage: React.FC = () => {
               <div className="mt-4">
                 <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Reason (Optional)</label>
                 <textarea 
-                  className="ems-input w-full min-h-[80px]"
+                  className="novynth-input w-full min-h-[80px]"
                   placeholder="Enter the reason for your WFH request..."
                   value={formData.reason}
                   onChange={e => setFormData({ ...formData, reason: e.target.value })}

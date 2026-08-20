@@ -1,4 +1,4 @@
-# Employee Management System (EMS) - Desktop & Web Application
+# Novynth Workflow - Desktop & Web Application
 
 ![Version](https://img.shields.io/badge/version-0.0.0-blue.svg)
 ![React](https://img.shields.io/badge/React-19.2-blue?logo=react)
@@ -7,9 +7,9 @@
 ![Electron](https://img.shields.io/badge/Electron-33.4-9cf?logo=electron)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.3-38bdf8?logo=tailwindcss)
 
-A enterprise-grade Employee Management System (EMS) built as a cross-platform desktop application powered by **Electron** and a responsive web application powered by **React 19**, **TypeScript**, and **Vite**.
+An enterprise-grade Novynth Workflow platform built as a cross-platform desktop application powered by **Electron** and a responsive web application powered by **React 19**, **TypeScript**, and **Vite**.
 
-EMS integrates HR management, biometrics & face recognition, project management with sprint tracking, real-time messaging, LiveKit audio/video video conferencing, applicant tracking (ATS), and automated approval workflows into a single application.
+Novynth Workflow integrates HR management, biometrics & face recognition, project management with sprint tracking, real-time messaging, LiveKit audio/video video conferencing, applicant tracking (ATS), and automated approval workflows into a single application.
 
 ---
 

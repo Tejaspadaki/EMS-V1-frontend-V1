@@ -44,7 +44,7 @@ export const AppLayout: React.FC = () => {
       <Sidebar collapsed={sidebarCollapsed} />
       <Topbar onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} sidebarCollapsed={sidebarCollapsed} />
       
-      <main className={`ems-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <main className={`novynth-main ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <Outlet />
       </main>
     </div>

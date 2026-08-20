@@ -10,7 +10,7 @@ export const UnauthorizedPlaceholder: React.FC = () => {
       <p className="text-[var(--color-text-secondary)] mb-8">
         You do not have the required permissions to view this page. If you believe this is an error, please contact your administrator.
       </p>
-      <Link to="/dashboard" className="ems-btn px-6 py-2">
+      <Link to="/dashboard" className="novynth-btn px-6 py-2">
         Return to Dashboard
       </Link>
     </div>

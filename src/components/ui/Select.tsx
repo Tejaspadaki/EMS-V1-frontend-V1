@@ -9,7 +9,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <select
         ref={ref}
-        className={`ems-input ${error ? 'error' : ''} ${className}`.trim()}
+        className={`novynth-input ${error ? 'error' : ''} ${className}`.trim()}
         {...props}
       >
         {children}

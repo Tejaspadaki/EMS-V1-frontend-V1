@@ -585,7 +585,7 @@ export const DashboardPage: React.FC = () => {
               <form onSubmit={handleCreateSOP} className="flex gap-2">
                 <input 
                   type="text" 
-                  className="ems-input flex-1 text-xs" 
+                  className="novynth-input flex-1 text-xs"
                   placeholder="New Standard Operating Procedure (SOP) title..."
                   value={sopTitle}
                   onChange={e => setSopTitle(e.target.value)}
@@ -682,14 +682,14 @@ export const DashboardPage: React.FC = () => {
                     type="number" 
                     min="1" 
                     max="12" 
-                    className="ems-input w-24 text-xs" 
+                    className="novynth-input w-24 text-xs"
                     value={internHours}
                     onChange={e => setInternHours(Number(e.target.value))}
                   />
                   <input 
                     type="text" 
                     placeholder="Description of work / lecture..." 
-                    className="ems-input flex-1 text-xs"
+                    className="novynth-input flex-1 text-xs"
                     value={internDesc}
                     onChange={e => setInternDesc(e.target.value)}
                   />

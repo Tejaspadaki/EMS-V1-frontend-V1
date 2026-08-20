@@ -78,7 +78,7 @@ export const AllRequestsPage: React.FC = () => {
 
       <div className="space-y-4">
         {requests.length === 0 ? (
-          <div className="ems-card p-12 flex flex-col items-center justify-center text-center">
+          <div className="novynth-card p-12 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
               <ShieldAlert size={32} className="text-gray-400" />
             </div>
@@ -89,7 +89,7 @@ export const AllRequestsPage: React.FC = () => {
           </div>
         ) : (
           requests.map((req) => (
-            <div key={req.id} className="ems-card overflow-hidden transition-all">
+            <div key={req.id} className="novynth-card overflow-hidden transition-all">
               <div className="p-4 flex items-center justify-between hover:bg-gray-50/50">
                 <div 
                   className="flex items-center gap-4 cursor-pointer flex-1"
@@ -179,7 +179,7 @@ export const AllRequestsPage: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Force Action</label>
               <select 
-                className="ems-input w-full"
+                className="novynth-input w-full"
                 value={overrideModal.action}
                 onChange={(e) => setOverrideModal({ ...overrideModal, action: e.target.value })}
               >
@@ -193,7 +193,7 @@ export const AllRequestsPage: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Target Tier State</label>
                 <select 
-                  className="ems-input w-full"
+                  className="novynth-input w-full"
                   value={overrideTargetTier}
                   onChange={(e) => setOverrideTargetTier(Number(e.target.value))}
                 >

@@ -694,7 +694,7 @@ export const ProjectDetailsPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
                   <textarea 
-                    className="ems-input w-full min-h-[120px]" required
+                    className="novynth-input w-full min-h-[120px]" required
                     value={settingsForm.description}
                     onChange={e => setSettingsForm({...settingsForm, description: e.target.value})}
                   />
@@ -704,7 +704,7 @@ export const ProjectDetailsPage: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Project Template</label>
                     <select
-                      className="ems-input w-full"
+                      className="novynth-input w-full"
                       value={settingsForm.template}
                       onChange={e => setSettingsForm({...settingsForm, template: e.target.value})}
                     >
@@ -716,7 +716,7 @@ export const ProjectDetailsPage: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Project Health</label>
                     <select
-                      className="ems-input w-full"
+                      className="novynth-input w-full"
                       value={settingsForm.health}
                       onChange={e => setSettingsForm({...settingsForm, health: e.target.value as any})}
                     >
@@ -730,7 +730,7 @@ export const ProjectDetailsPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Visibility Scope</label>
                   <select
-                    className="ems-input w-full"
+                    className="novynth-input w-full"
                     value={settingsForm.visibility}
                     onChange={e => setSettingsForm({...settingsForm, visibility: e.target.value as any})}
                   >
@@ -958,7 +958,7 @@ export const ProjectDetailsPage: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Select Employee</label>
             <select 
-              className="ems-input w-full"
+              className="novynth-input w-full"
               value={addMemberForm.userId}
               onChange={e => setAddMemberForm({ ...addMemberForm, userId: e.target.value })}
               required
@@ -976,7 +976,7 @@ export const ProjectDetailsPage: React.FC = () => {
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Project Role</label>
               <select 
-                className="ems-input w-full"
+                className="novynth-input w-full"
                 value={addMemberForm.roleId}
                 onChange={e => setAddMemberForm({ ...addMemberForm, roleId: e.target.value })}
                 required
@@ -1024,7 +1024,7 @@ export const ProjectDetailsPage: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Assign Project Role</label>
                 <select 
-                  className="ems-input w-full"
+                  className="novynth-input w-full"
                   value={editMemberForm.roleId}
                   onChange={e => setEditMemberForm({ ...editMemberForm, roleId: e.target.value })}
                   required

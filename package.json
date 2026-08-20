@@ -1,10 +1,10 @@
 {
-  "name": "ems-frontend",
+  "name": "novynth-workflow-frontend",
   "private": true,
   "version": "1.6.0",
   "type": "module",
   "main": "electron/main.cjs",
-  "description": "Employee Management System Desktop App",
+  "description": "Novynth Workflow Desktop App",
   "author": {
     "name": "Novynth Labs Pvt Ltd",
     "email": "novynthlabs@gmail.com"

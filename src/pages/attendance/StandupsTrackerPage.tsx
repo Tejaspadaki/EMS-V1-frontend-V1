@@ -57,7 +57,7 @@ export const StandupsTrackerPage: React.FC = () => {
         </Button>
       </div>
 
-      <div className="ems-card overflow-hidden">
+      <div className="novynth-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-[var(--color-text-secondary)]">
             <thead className="bg-gray-50 border-b border-[var(--color-border)] text-[var(--color-text-primary)]">
@@ -111,7 +111,7 @@ export const StandupsTrackerPage: React.FC = () => {
             <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Standup Date</label>
             <input 
               type="date"
-              className="ems-input w-full"
+              className="novynth-input w-full"
               value={excuseModal.date}
               onChange={(e) => setExcuseModal({ ...excuseModal, date: e.target.value })}
             />
@@ -120,7 +120,7 @@ export const StandupsTrackerPage: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Reason</label>
             <textarea 
-              className="ems-input w-full min-h-[100px]"
+              className="novynth-input w-full min-h-[100px]"
               placeholder="Provide a valid reason..."
               value={excuseModal.reason}
               onChange={(e) => setExcuseModal({ ...excuseModal, reason: e.target.value })}

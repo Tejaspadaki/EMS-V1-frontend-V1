@@ -43,7 +43,7 @@ export const GrantHRPage: React.FC = () => {
     <div className="max-w-xl mx-auto">
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Grant HR Role</h2>
       
-      <div className="ems-card p-6">
+      <div className="novynth-card p-6">
         <p className="text-sm text-[var(--color-text-secondary)] mb-6">
           Elevate an existing user's permissions to Human Resources. This grants them access to user management features.
         </p>

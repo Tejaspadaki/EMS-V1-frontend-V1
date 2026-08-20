@@ -1,5 +1,5 @@
-appId: com.novynthlabs.ems
-productName: Employee Management System
+appId: com.novynthlabs.novynthworkflow
+productName: Novynth Workflow
 copyright: Copyright © 2026 Novynth Labs Pvt Ltd
 
 directories:
@@ -23,7 +23,7 @@ extraMetadata:
   maintainer: Novynth Labs Pvt Ltd <novynthlabs@gmail.com>
 
 win:
-  executableName: ems-frontend
+  executableName: novynth-workflow
   icon: build/icon.ico
   target:
     - target: nsis
@@ -38,19 +38,18 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
   createStartMenuShortcut: true
-  shortcutName: "Employee Management System"
+  shortcutName: "Novynth Workflow"
   runAfterFinish: true
   artifactName: "${productName}-Setup-${version}.${ext}"
 
 portable:
   artifactName: "${productName}-Portable-${version}.${ext}"
 
-linux:
-  executableName: ems-frontend
+  executableName: novynth-workflow
   icon: build/icon.png
   category: Office
   maintainer: "Novynth Labs Pvt Ltd <novynthlabs@gmail.com>"
-  synopsis: Employee Management System Desktop Application
+  synopsis: Novynth Workflow Desktop Application
   target:
     - target: AppImage
       arch:

@@ -605,7 +605,7 @@ export const BacklogPage: React.FC<BacklogPageProps> = ({ projectId, project, is
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Sprint Goal</label>
             <textarea
-              className="ems-input w-full min-h-[80px]"
+              className="novynth-input w-full min-h-[80px]"
               placeholder="e.g. Deliver Auth and Project dashboards..."
               value={sprintForm.goal}
               onChange={e => setSprintForm({ ...sprintForm, goal: e.target.value })}
@@ -632,7 +632,7 @@ export const BacklogPage: React.FC<BacklogPageProps> = ({ projectId, project, is
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
             <textarea
-              className="ems-input w-full min-h-[80px]"
+              className="novynth-input w-full min-h-[80px]"
               placeholder="e.g. Setup tokens, RBAC models, login interfaces..."
               value={epicForm.description}
               onChange={e => setEpicForm({ ...epicForm, description: e.target.value })}
@@ -661,7 +661,7 @@ export const BacklogPage: React.FC<BacklogPageProps> = ({ projectId, project, is
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Move incomplete tasks to:</label>
               <select
-                className="ems-input w-full font-bold"
+                className="novynth-input w-full font-bold"
                 value={rolloverSprintId}
                 onChange={e => setRolloverSprintId(e.target.value)}
               >

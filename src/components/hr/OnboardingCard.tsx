@@ -94,7 +94,7 @@ export const OnboardingCard: React.FC<{ employee: EmployeeOnboardingData }> = ({
   };
 
   return (
-    <div className={`ems-card p-5 flex flex-col gap-4 transition-all duration-300 ${animating ? 'ring-2 ring-[var(--color-status-active-text)] shadow-lg scale-[1.02]' : ''}`}>
+    <div className={`novynth-card p-5 flex flex-col gap-4 transition-all duration-300 ${animating ? 'ring-2 ring-[var(--color-status-active-text)] shadow-lg scale-[1.02]' : ''}`}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

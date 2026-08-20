@@ -93,7 +93,7 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
 
   return (
     <>
-      <header className={`ems-topbar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <header className={`novynth-topbar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <button 
             onClick={onToggleSidebar}
@@ -105,8 +105,8 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
 
           {/* Breadcrumbs */}
           <nav className="hidden lg:flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-            <Link to="/dashboard" className="hover:text-indigo-600 transition-colors">
-              EMS
+              <Link to="/dashboard" className="hover:text-indigo-600 transition-colors">
+              Novynth Workflow
             </Link>
             {breadcrumbs.map((b, i) => (
               <React.Fragment key={b.url}>

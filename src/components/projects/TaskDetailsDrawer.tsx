@@ -345,7 +345,7 @@ export const TaskDetailsDrawer: React.FC<TaskDetailsDrawerProps> = ({
                 <select
                   value={depTaskId}
                   onChange={e => setDepTaskId(e.target.value)}
-                  className="ems-input text-xs py-1 px-2.5 flex-1 min-w-[120px]"
+                  className="novynth-input text-xs py-1 px-2.5 flex-1 min-w-[120px]"
                 >
                   <option value="">Select Target Task...</option>
                   {allProjectTasks.map(t => (
@@ -355,7 +355,7 @@ export const TaskDetailsDrawer: React.FC<TaskDetailsDrawerProps> = ({
                 <select
                   value={depType}
                   onChange={e => setDepType(e.target.value as any)}
-                  className="ems-input text-xs py-1 px-2.5 w-28"
+                  className="novynth-input text-xs py-1 px-2.5 w-28"
                 >
                   <option value="blocks">Blocks</option>
                   <option value="blocked_by">Blocked By</option>
@@ -411,7 +411,7 @@ export const TaskDetailsDrawer: React.FC<TaskDetailsDrawerProps> = ({
                 <select
                   value={details.assigneeId || ''}
                   onChange={(e) => handleAssigneeChange(e.target.value)}
-                  className="ems-input text-xs w-full py-1 font-bold bg-white"
+                  className="novynth-input text-xs w-full py-1 font-bold bg-white"
                 >
                   <option value="">Unassigned</option>
                   {projectMembers.map(m => (
@@ -427,7 +427,7 @@ export const TaskDetailsDrawer: React.FC<TaskDetailsDrawerProps> = ({
                   min={0}
                   value={details.storyPoints !== null ? details.storyPoints : ''}
                   onChange={(e) => handleSprintEstimateEpicChange({ storyPoints: e.target.value === '' ? null : Number(e.target.value) })}
-                  className="ems-input text-xs w-full py-1 font-bold text-center bg-white"
+                  className="novynth-input text-xs w-full py-1 font-bold text-center bg-white"
                 />
               </div>
 
@@ -436,7 +436,7 @@ export const TaskDetailsDrawer: React.FC<TaskDetailsDrawerProps> = ({
                 <select
                   value={details.sprintId || ''}
                   onChange={(e) => handleSprintEstimateEpicChange({ sprintId: e.target.value === '' ? null : e.target.value })}
-                  className="ems-input text-xs w-full py-1 font-bold bg-white"
+                  className="novynth-input text-xs w-full py-1 font-bold bg-white"
                 >
                   <option value="">Backlog</option>
                   {sprints.map(s => (
@@ -450,7 +450,7 @@ export const TaskDetailsDrawer: React.FC<TaskDetailsDrawerProps> = ({
                 <select
                   value={details.epicId || ''}
                   onChange={(e) => handleSprintEstimateEpicChange({ epicId: e.target.value === '' ? null : e.target.value })}
-                  className="ems-input text-xs w-full py-1 font-bold bg-white"
+                  className="novynth-input text-xs w-full py-1 font-bold bg-white"
                 >
                   <option value="">No Epic</option>
                   {epics.map(ep => (

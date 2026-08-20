@@ -98,7 +98,7 @@ export const SubmitDocumentsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Upload Section */}
         <div className="md:col-span-1">
-          <div className="ems-card p-6 sticky top-6">
+          <div className="novynth-card p-6 sticky top-6">
             <h2 className="text-lg font-semibold mb-4 text-[var(--color-text-primary)]">Upload New File</h2>
             <form onSubmit={handleUpload} className="space-y-4">
               <div>
@@ -156,11 +156,11 @@ export const SubmitDocumentsPage: React.FC = () => {
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] px-1">Uploaded Documents</h2>
           
           {loading ? (
-            <div className="ems-card p-12 flex justify-center items-center">
+            <div className="novynth-card p-12 flex justify-center items-center">
               <Loader2 className="animate-spin text-[var(--color-primary)]" size={32} />
             </div>
           ) : documents.length === 0 ? (
-            <div className="ems-card p-12 flex flex-col items-center justify-center text-center">
+            <div className="novynth-card p-12 flex flex-col items-center justify-center text-center">
               <FileText size={48} className="text-slate-300 mb-4" />
               <h3 className="text-lg font-medium text-slate-700">No documents yet</h3>
               <p className="text-slate-500 text-sm mt-1">Files uploaded for this employee will appear here.</p>
@@ -168,7 +168,7 @@ export const SubmitDocumentsPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {documents.map(doc => (
-                <div key={doc.id} className="ems-card p-4 hover:shadow-md transition-shadow group">
+                <div key={doc.id} className="novynth-card p-4 hover:shadow-md transition-shadow group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                       <FileText size={24} />

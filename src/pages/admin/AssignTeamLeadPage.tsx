@@ -39,7 +39,7 @@ export const AssignTeamLeadPage: React.FC = () => {
     <div className="max-w-xl mx-auto">
       <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Assign Team Lead</h2>
       
-      <div className="ems-card p-6">
+      <div className="novynth-card p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Department Head</label>

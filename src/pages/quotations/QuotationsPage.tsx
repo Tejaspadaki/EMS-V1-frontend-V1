@@ -97,7 +97,7 @@ export const QuotationsPage: React.FC = () => {
           <div className="mb-6 max-w-md">
             <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Select Project</label>
             <select 
-              className="ems-input w-full"
+              className="novynth-input w-full"
               value={selectedProjectId}
               onChange={handleProjectSelect}
             >

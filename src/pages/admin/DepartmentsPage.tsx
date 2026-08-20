@@ -90,7 +90,7 @@ export const DepartmentsPage: React.FC = () => {
         </Button>
       </div>
 
-      <div className="ems-card overflow-hidden">
+      <div className="novynth-card overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-[var(--color-text-secondary)]">Loading departments...</div>
         ) : departments.length === 0 ? (

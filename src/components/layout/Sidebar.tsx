@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   // Collapsible section state
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
     try {
-      const saved = localStorage.getItem('ems_sidebar_collapsed_sections');
+      const saved = localStorage.getItem('novynth_sidebar_collapsed_sections');
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -43,10 +43,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   });
 
   const toggleSection = (sectionTitle: string) => {
-    setCollapsedSections(prev => {
+      setCollapsedSections(prev => {
       const updated = { ...prev, [sectionTitle]: !prev[sectionTitle] };
       try {
-        localStorage.setItem('ems_sidebar_collapsed_sections', JSON.stringify(updated));
+        localStorage.setItem('novynth_sidebar_collapsed_sections', JSON.stringify(updated));
       } catch (err) {
         console.error('Failed to save sidebar state', err);
       }
@@ -157,15 +157,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   };
 
   return (
-    <aside className={`ems-sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <aside className={`novynth-sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 px-4">
         <div className="flex items-center gap-3 w-full">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md">
-            E
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md">
+            N
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <h1 className="text-white font-extrabold text-base tracking-tight leading-none">EMS Portal</h1>
+              <h1 className="text-white font-extrabold text-base tracking-tight leading-none">Novynth Workflow</h1>
               <span className="text-[10px] text-white/40 font-medium mt-0.5">SaaS Enterprise</span>
             </div>
           )}
@@ -239,9 +239,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       </nav>
 
       <div className="shrink-0 px-3 pb-4 pt-2 border-t border-white/5">
-        <div className={`rounded-xl bg-white/5 border border-white/10 p-3 ${collapsed ? 'hidden' : ''}`}>
+            <div className={`rounded-xl bg-white/5 border border-white/10 p-3 ${collapsed ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between">
-            <span className="text-white/40 text-[10px] font-bold uppercase tracking-wider">EMS v1.0</span>
+            <span className="text-white/40 text-[10px] font-bold uppercase tracking-wider">Novynth Workflow v1.0</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
           <p className="text-white/60 text-xs font-semibold mt-1 truncate">{user?.name || 'Logged in'}</p>

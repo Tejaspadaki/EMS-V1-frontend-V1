@@ -61,7 +61,7 @@ export const ApprovalQueuePage: React.FC = () => {
 
       <div className="space-y-4">
         {requests.map((req) => (
-          <div key={req.id} className="ems-card overflow-hidden transition-all">
+          <div key={req.id} className="novynth-card overflow-hidden transition-all">
             <div className="p-4 flex items-center justify-between hover:bg-gray-50/50">
               <div 
                 className="flex items-center gap-4 cursor-pointer flex-1"
