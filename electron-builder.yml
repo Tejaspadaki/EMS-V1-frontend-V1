@@ -44,19 +44,9 @@ nsis:
 
 portable:
   artifactName: "${productName}-Portable-${version}.${ext}"
-
-  executableName: novynth-workflow
-  icon: build/icon.png
-  category: Office
-  maintainer: "Novynth Labs Pvt Ltd <novynthlabs@gmail.com>"
-  synopsis: Novynth Workflow Desktop Application
-  target:
-    - target: AppImage
-      arch:
-        - x64
-    - target: deb
-      arch:
-        - x64
+  # Note: only portable-specific schema keys are allowed here (artifactName, guid, publish,
+  # requestExecutionLevel, splashImage, unicode, unpackDirName, useZip, warningsAsErrors).
+  # Other packaging targets (AppImage, deb) are configured in their respective sections below.
 
 appImage:
   artifactName: "${productName}-${version}.${ext}"
