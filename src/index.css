@@ -1,8 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import "tailwindcss";
-@source "./**/*.{ts,tsx,html}";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
+:root {
   --color-primary:        #1E293B;
   --color-primary-light:  #334155;
   --color-primary-dark:   #0F172A;
@@ -25,8 +26,9 @@
   --color-border:         #E2E8F0;
 
   --color-text-primary:   #0F172A;
+}
 
-  .novynth-h1 { font-size: 28px; font-weight: 700; color: #0F172A; line-height: 1.25; letter-spacing: -0.02em; }
+.novynth-h1 { font-size: 28px; font-weight: 700; color: #0F172A; line-height: 1.25; letter-spacing: -0.02em; }
   .novynth-h2 { font-size: 20px; font-weight: 600; color: #0F172A; letter-spacing: -0.01em; }
   .novynth-body { font-size: 14px; font-weight: 400; }
   .novynth-caption { font-size: 12px; color: #64748B; }
@@ -398,7 +400,6 @@
   .novynth-topbar-user-info {
     display: none;
   }
-}
 
 @media (max-width: 520px) {
   .novynth-public-profile-header {
