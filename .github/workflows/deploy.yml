@@ -79,10 +79,11 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install System Dependencies for Linux Electron Builder
+      - name: Install System Dependencies for Linux Electron Builder & Wine for Windows
         run: |
+          sudo dpkg --add-architecture i386 || true
           sudo apt-get update
-          sudo apt-get install -y icnsutils graphicsmagick xz-utils libopenjp2-7-dev libssl-dev rpm
+          sudo apt-get install -y icnsutils graphicsmagick xz-utils libopenjp2-7-dev libssl-dev rpm wine64 wine
 
       - name: Install Dependencies & Set Permissions
         run: |
