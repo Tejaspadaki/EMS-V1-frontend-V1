@@ -5,69 +5,10 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      deploy_web:
-        description: 'Deploy Web Application'
-        required: true
-        type: boolean
-        default: true
-      deploy_desktop:
-        description: 'Build & Deploy Desktop Updates (Windows & Linux)'
-        required: true
-        type: boolean
-        default: true
 
 jobs:
-  # Job 1: Build & Deploy Web Frontend
-  deploy-web:
-    name: Build & Deploy Web Frontend to cPanel via FTP
-    if: ${{ github.event_name == 'push' || github.event.inputs.deploy_web == 'true' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.2.2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Web Production Bundle
-        run: npm run build
-
-      - name: Verify Web Dist Output
-        run: ls -la dist/
-
-      - name: Deploy Web App to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          security: loose
-          port: ${{ secrets.FTP_PORT || 21 }}
-          timeout: 60000
-          local-dir: ./dist/
-          server-dir: /
-          exclude: |
-            **/.git*
-            **/.git*/**
-            node_modules/**
-            **/node_modules/**
-            .github/**
-            .env*
-            README.md
-
-  # Job 2: Build & Deploy Desktop Application Updates (Windows & Linux)
-  deploy-desktop-updates:
-    name: Build & Publish Desktop Updates (Windows & Linux)
-    if: ${{ github.event_name == 'push' || github.event.inputs.deploy_desktop == 'true' }}
+  deploy:
+    name: Build & Deploy Web Application and Desktop Releases
     runs-on: ubuntu-latest
 
     steps:
@@ -92,11 +33,35 @@ jobs:
           chmod -R +x node_modules/7zip-bin/ || true
           chmod -R +x node_modules/.bin/ || true
 
-      - name: Build Desktop Installers & Organize Updates
+      - name: Build Web Bundle & Desktop Installers
         run: npm run build:all
 
-      - name: Verify Organized Updates Directory
+      - name: Verify Web Dist Output
+        run: ls -la dist/
+
+      - name: Verify Desktop Output Directory
         run: ls -la dist-electron/
+
+      - name: Deploy Web Application to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          security: loose
+          port: ${{ secrets.FTP_PORT || 21 }}
+          timeout: 60000
+          local-dir: ./dist/
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            node_modules/**
+            **/node_modules/**
+            .github/**
+            .env*
+            README.md
 
       - name: Deploy Desktop Updates to Backend /updates Portal via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
