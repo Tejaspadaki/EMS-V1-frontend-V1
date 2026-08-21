@@ -16,11 +16,11 @@ export const globalSearch = async (query: string) => {
   }
   
   const response = await api.get(`/search?q=${encodeURIComponent(query)}`);
-  const data = response.data.data;
+  const data = response.data?.data || response.data || {};
   
   const results: SearchResult[] = [];
   
-  if (data.employees) {
+  if (Array.isArray(data.employees)) {
     data.employees.forEach((emp: any) => {
       results.push({
         id: emp.id,
@@ -32,7 +32,7 @@ export const globalSearch = async (query: string) => {
     });
   }
   
-  if (data.projects) {
+  if (Array.isArray(data.projects)) {
     data.projects.forEach((proj: any) => {
       results.push({
         id: proj.id,
@@ -44,7 +44,7 @@ export const globalSearch = async (query: string) => {
     });
   }
   
-  if (data.tasks) {
+  if (Array.isArray(data.tasks)) {
     data.tasks.forEach((task: any) => {
       results.push({
         id: task.id,

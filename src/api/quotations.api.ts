@@ -20,7 +20,7 @@ export interface Quotation {
 
 export const getQuotations = async () => {
   const response = await api.get('/quotations');
-  return response.data.data;
+  return Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
 };
 
 export const generateQuotation = async (projectId: string, projectTitle: string, lineItems: Omit<LineItem, 'id' | 'total'>[]) => {

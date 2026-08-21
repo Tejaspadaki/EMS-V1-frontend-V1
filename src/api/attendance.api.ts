@@ -51,7 +51,8 @@ export const enrollFace = async (data: {
 
 export const getStandups = async () => {
   const response = await api.get('/standups/me');
-  return response.data.data.map((r: any) => ({
+  const items = Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
+  return items.map((r: any) => ({
     ...r,
     status: r.status === 'PRESENT' ? 'Attended' : r.status
   }));
@@ -64,7 +65,10 @@ export const excuseStandup = async (date: string, reason: string) => {
 
 export const getPendingFaces = async () => {
   const response = await api.get('/attendance/face/pending');
-  return response.data;
+  return {
+    success: Boolean(response.data?.success ?? true),
+    data: Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : []
+  };
 };
 
 export const approveFace = async (id: number) => {

@@ -30,12 +30,12 @@ export const grantHRRole = async (userId: string) => {
 export const searchUsers = async (query: string, _roleFilter?: string) => {
   if (!query.trim()) return [];
   const response = await api.get(`/search?q=${encodeURIComponent(query)}`);
-  return response.data.data.employees || [];
+  return response.data?.data?.employees || response.data?.employees || [];
 };
 
 export const getDirectoryUsers = async () => {
   const response = await api.get('/search/all-users');
-  return response.data.data || [];
+  return Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
 };
 
 export const getDashboardData = async () => {
@@ -45,7 +45,7 @@ export const getDashboardData = async () => {
 
 export const getAllUsers = async () => {
   const response = await api.get('/admin/users');
-  return response.data.data;
+  return Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
 };
 
 export const getDepartmentDashboard = async () => {

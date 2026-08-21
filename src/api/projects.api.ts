@@ -62,7 +62,8 @@ const mapStage = (dbStatus: string): ProjectStage => {
 
 export const getProjects = async (includeArchived = false) => {
   const res = await api.get(`/projects${includeArchived ? '?archived=true' : ''}`);
-  return res.data.data.map((p: any) => ({
+  const items = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+  return items.map((p: any) => ({
     ...p,
     title: p.name,
     stage: mapStage(p.status),
