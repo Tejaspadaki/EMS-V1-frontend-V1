@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     name: Build & Deploy Web Application and Desktop Releases
@@ -27,20 +30,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y icnsutils graphicsmagick xz-utils libopenjp2-7-dev libssl-dev rpm wine64 wine
 
-      - name: Install Dependencies & Set Permissions
+      - name: Install Dependencies & Set Executable Permissions
         run: |
           npm ci
           chmod -R +x node_modules/7zip-bin/ || true
           chmod -R +x node_modules/.bin/ || true
 
       - name: Build Web Bundle & Desktop Installers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:all
-
-      - name: Verify Web Dist Output
-        run: ls -la dist/
-
-      - name: Verify Desktop Output Directory
-        run: ls -la dist-electron/
 
       - name: Deploy Web Application to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -51,7 +50,7 @@ jobs:
           protocol: ftps
           security: loose
           port: ${{ secrets.FTP_PORT || 21 }}
-          timeout: 60000
+          timeout: 300000
           local-dir: ./dist/
           server-dir: /
           exclude: |
@@ -72,7 +71,7 @@ jobs:
           protocol: ftps
           security: loose
           port: ${{ secrets.FTP_PORT || 21 }}
-          timeout: 120000
+          timeout: 300000
           local-dir: ./dist-electron/
           server-dir: /public/updates/
           exclude: |

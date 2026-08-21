@@ -12,8 +12,11 @@ files:
   - package.json
 
 publish:
-  provider: generic
-  url: https://ems-backend.yuktiyantra.com/updates/
+  - provider: github
+    owner: Tejaspadaki
+    repo: EMS-V1-frontend-V1
+  - provider: generic
+    url: https://ems-backend.yuktiyantra.com/updates/
 
 extraMetadata:
   author:
@@ -44,13 +47,23 @@ nsis:
 
 portable:
   artifactName: "${productName}-Portable-${version}.${ext}"
-  # Note: only portable-specific schema keys are allowed here (artifactName, guid, publish,
-  # requestExecutionLevel, splashImage, unicode, unpackDirName, useZip, warningsAsErrors).
-  # Other packaging targets (AppImage, deb) are configured in their respective sections below.
+
+linux:
+  executableName: novynth-workflow
+  icon: build/icon.png
+  category: Office
+  maintainer: "Novynth Labs Pvt Ltd <novynthlabs@gmail.com>"
+  synopsis: Novynth Workflow Desktop Application
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
 
 appImage:
   artifactName: "${productName}-${version}.${ext}"
 
 deb:
   artifactName: "${productName}_${version}_amd64.${ext}"
-
