@@ -43,10 +43,10 @@ nsis:
   createStartMenuShortcut: true
   shortcutName: "Novynth Workflow"
   runAfterFinish: true
-  artifactName: "${productName}-Setup-${version}.${ext}"
+  artifactName: "Novynth-Workflow-Setup-${version}.${ext}"
 
 portable:
-  artifactName: "${productName}-Portable-${version}.${ext}"
+  artifactName: "Novynth-Workflow-Portable-${version}.${ext}"
 
 linux:
   executableName: novynth-workflow

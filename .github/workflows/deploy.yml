@@ -41,6 +41,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run build:all
 
+      - name: Verify Generated Executable & Installer Integrity
+        run: node scripts/verify-exe.cjs
+
       - name: Deploy Web Application to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
