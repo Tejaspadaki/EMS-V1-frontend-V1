@@ -51,17 +51,18 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           security: loose
-          port: ${{ secrets.FTP_PORT }}
+          port: ${{ secrets.FTP_PORT || 21 }}
           timeout: 60000
           local-dir: ./dist/
           server-dir: /
           exclude: |
             **/.git*
             **/.git*/**
+            node_modules/**
             **/node_modules/**
-            **/.github/**
-            **/.env*
-            **/README.md
+            .github/**
+            .env*
+            README.md
 
   # Job 2: Build & Deploy Desktop Application Updates (Windows & Linux)
   deploy-desktop-updates:
@@ -110,11 +111,14 @@ jobs:
           local-dir: ./dist-electron/
           server-dir: /public/updates/
           exclude: |
-            "**/.git*"
-            "**/.git*/**"
-            "**/node_modules/**"
-            "**/win-unpacked/**"
-            "**/linux-unpacked/**"
-            "**/*.blockmap"
-            "**/builder-effective-config.yaml"
-            "**/builder-debug.log"
+            **/.git*
+            **/.git*/**
+            node_modules/**
+            **/node_modules/**
+            win-unpacked/**
+            **/win-unpacked/**
+            linux-unpacked/**
+            **/linux-unpacked/**
+            *.blockmap
+            builder-effective-config.yaml
+            builder-debug.log
