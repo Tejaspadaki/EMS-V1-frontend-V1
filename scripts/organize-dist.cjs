@@ -35,9 +35,11 @@ if (fs.existsSync(distElectron)) {
 
     // Windows Installers
     if (file.includes('Setup') && file.endsWith('.exe')) {
+      copyFile(fullPath, path.join(winDir, 'Novynth-Workflow-Setup.exe'));
       copyFile(fullPath, path.join(winDir, 'Setup.exe'));
       copyFile(fullPath, path.join(winDir, file));
     } else if (file.includes('Portable') && file.endsWith('.exe')) {
+      copyFile(fullPath, path.join(winDir, 'Novynth-Workflow-Portable.exe'));
       copyFile(fullPath, path.join(winDir, 'Portable.exe'));
       copyFile(fullPath, path.join(winDir, file));
     }
