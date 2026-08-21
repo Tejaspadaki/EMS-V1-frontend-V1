@@ -50,13 +50,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         {/* Top Brand Header */}
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-              <Building2 className="text-white" size={22} />
-            </div>
+            <img src="/logo.png" alt="Novynth Logo" className="w-11 h-11 rounded-xl object-contain bg-white/10 p-1 backdrop-blur-sm border border-white/10" />
             <div>
-              <span className="text-white font-bold text-xl tracking-tight">EMS Portal</span>
+              <span className="text-white font-bold text-xl tracking-tight">Novynth Workflow</span>
               <span className="ml-2.5 text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/10">
-                Enterprise v2.4
+                SaaS v1.7
               </span>
             </div>
           </div>

@@ -173,9 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     <aside className={`novynth-sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 px-4">
         <div className="flex items-center gap-3 w-full">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md">
-            N
-          </div>
+            <img src="/logo.png" alt="Novynth Logo" className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md bg-white/10 p-0.5" />
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <h1 className="text-white font-extrabold text-base tracking-tight leading-none">Novynth Workflow</h1>
