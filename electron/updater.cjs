@@ -120,16 +120,20 @@ function initAutoUpdater(mainWindow) {
       }
     });
 
-    // 8. Trigger check for updates (checks on startup + every 4 hours)
-    setTimeout(() => {
-      autoUpdater.checkForUpdatesAndNotify().catch((err) => {
-        console.log('[AUTO-UPDATER] Check for updates skipped in dev mode or server offline:', err.message);
-      });
-    }, 5000);
+    // 8. Trigger check for updates when packaged (checks on startup + every 4 hours)
+    if (app.isPackaged) {
+      setTimeout(() => {
+        autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+          console.log('[AUTO-UPDATER] Check for updates warning:', err.message);
+        });
+      }, 5000);
 
-    setInterval(() => {
-      autoUpdater.checkForUpdates().catch(() => {});
-    }, 4 * 60 * 60 * 1000);
+      setInterval(() => {
+        autoUpdater.checkForUpdates().catch(() => {});
+      }, 4 * 60 * 60 * 1000);
+    } else {
+      console.log('[AUTO-UPDATER] Running in development mode; auto-updater active for testing.');
+    }
   } catch (err) {
     console.error('[AUTO-UPDATER] Unexpected updater error:', err.message);
   }

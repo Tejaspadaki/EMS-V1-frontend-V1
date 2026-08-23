@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { changePassword } from '../../api/auth.api';
-import { Lock, User, Shield, Bell, Moon, KeyRound, CheckCircle } from 'lucide-react';
+import { Lock, User, Shield, Bell, Moon, KeyRound, CheckCircle, Download, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { fetchLatestRelease } from '../../utils/githubRelease';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -11,6 +12,18 @@ export const SettingsPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [releaseInfo, setReleaseInfo] = useState<{ version: string; winUrl: string; linuxUrl: string; releaseUrl: string } | null>(null);
+
+  useEffect(() => {
+    fetchLatestRelease().then((info) => {
+      setReleaseInfo({
+        version: info.version,
+        winUrl: info.windowsInstallerUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+        linuxUrl: info.linuxAppImageUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+        releaseUrl: info.htmlUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+      });
+    }).catch(() => {});
+  }, []);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,10 +150,15 @@ export const SettingsPage: React.FC = () => {
                     <Download className="text-purple-600" size={20} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-900">EMS Desktop Apps</h2>
-                    <p className="text-sm text-slate-500">Download native applications for Windows and Linux.</p>
+                    <h2 className="text-lg font-semibold text-slate-900">Novynth Workflow Desktop Apps</h2>
+                    <p className="text-sm text-slate-500">Download native desktop applications hosted on GitHub Releases.</p>
                   </div>
                 </div>
+                {releaseInfo?.version && (
+                  <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                    v{releaseInfo.version}
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -148,35 +166,20 @@ export const SettingsPage: React.FC = () => {
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm text-slate-900 flex items-center gap-2">
-                      🪟 Windows Apps
+                      🪟 Windows Setup Installer
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-700">Win 10/11</span>
                   </div>
-                  <p className="text-xs text-slate-500">Available as NSIS setup installer, portable exe, or zip archive.</p>
-                  <div className="space-y-1.5 pt-1">
+                  <p className="text-xs text-slate-500">Official Windows NSIS setup package with auto-update integration.</p>
+                  <div className="pt-1">
                     <a
-                      href="/updates/Windows/Employee%20Management%20System-Setup-1.4.0.exe"
-                      download="Employee Management System-Setup-1.4.0.exe"
-                      className="block text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                      href={releaseInfo?.winUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
                     >
                       Download Setup (.exe)
                     </a>
-                    <div className="flex gap-2">
-                      <a
-                        href="/updates/Windows/Employee%20Management%20System-Portable-1.4.0.exe"
-                        download="Employee Management System-Portable-1.4.0.exe"
-                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
-                      >
-                        Portable (.exe)
-                      </a>
-                      <a
-                        href="/updates/Windows/Employee%20Management%20System-1.4.0-win.zip"
-                        download="Employee Management System-1.4.0-win.zip"
-                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
-                      >
-                        ZIP Archive
-                      </a>
-                    </div>
                   </div>
                 </div>
 
@@ -184,35 +187,20 @@ export const SettingsPage: React.FC = () => {
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm text-slate-900 flex items-center gap-2">
-                      🐧 Linux Apps
+                      🐧 Linux AppImage
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-700">All Distros</span>
                   </div>
-                  <p className="text-xs text-slate-500">Available as universal AppImage, Ubuntu/Debian .deb, or Fedora/RHEL .rpm.</p>
-                  <div className="space-y-1.5 pt-1">
+                  <p className="text-xs text-slate-500">Universal Linux AppImage executable for Ubuntu, Fedora, Debian & Arch.</p>
+                  <div className="pt-1">
                     <a
-                      href="/updates/Linux/Employee%20Management%20System-1.4.0.AppImage"
-                      download="Employee Management System-1.4.0.AppImage"
-                      className="block text-center py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                      href={releaseInfo?.linuxUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
                     >
-                      Download AppImage
+                      Download AppImage (.AppImage)
                     </a>
-                    <div className="flex gap-2">
-                      <a
-                        href="/updates/Linux/Employee%20Management%20System_1.4.0_amd64.deb"
-                        download="Employee Management System_1.4.0_amd64.deb"
-                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
-                      >
-                        DEB (Ubuntu)
-                      </a>
-                      <a
-                        href="/updates/Linux/Employee%20Management%20System-1.4.0.x86_64.rpm"
-                        download="Employee Management System-1.4.0.x86_64.rpm"
-                        className="flex-1 text-center py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium rounded-lg transition-colors"
-                      >
-                        RPM (Fedora)
-                      </a>
-                    </div>
                   </div>
                 </div>
               </div>

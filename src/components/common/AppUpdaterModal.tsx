@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowRight, Info, RefreshCw, CheckCircle2, AlertCircle, Download, Sparkles, Monitor, Terminal } from 'lucide-react';
+import { X, Info, Download, Sparkles, Monitor, Terminal, ExternalLink } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
+import { fetchLatestRelease, detectOS, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
 
 interface AppUpdaterModalProps {
   isOpen: boolean;
@@ -13,38 +14,54 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
   isOpen, 
   onClose,
   initialStatus = 'idle',
-  initialVersion = '1.4.0'
+  initialVersion = '1.7.0'
 }) => {
-  const [currentVersion, setCurrentVersion] = useState<string>('1.4.0');
+  const [currentVersion, setCurrentVersion] = useState<string>(initialVersion);
   const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'>(initialStatus);
   const [targetVersion, setTargetVersion] = useState<string>(initialVersion);
   const [progress, setProgress] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [checking, setChecking] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState<boolean>(false);
+  const [detectedOS, setDetectedOS] = useState<OperatingSystem>('windows');
+  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux'>('windows');
+  const [releaseInfo, setReleaseInfo] = useState<LatestReleaseInfo | null>(null);
+  const [loadingRelease, setLoadingRelease] = useState<boolean>(true);
 
-  // Platform selection for downloads: 'windows' | 'linux'
-  const getInitialPlatform = (): 'windows' | 'linux' => {
-    if (typeof navigator === 'undefined') return 'windows';
-    const ua = navigator.userAgent;
-    if (/linux/i.test(ua)) return 'linux';
-    return 'windows';
-  };
-
-  const [selectedPlatform, setSelectedPlatform] = useState<'windows' | 'linux'>(getInitialPlatform());
   const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
   useEffect(() => {
     if (!isOpen) return;
     setIsClosing(false);
 
+    const os = detectOS();
+    setDetectedOS(os);
+    if (os === 'linux') {
+      setSelectedPlatform('linux');
+    } else {
+      setSelectedPlatform('windows');
+    }
+
+    setLoadingRelease(true);
+    fetchLatestRelease()
+      .then((info) => {
+        setReleaseInfo(info);
+        if (info.version) {
+          setTargetVersion(info.version);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load latest release info:', err);
+      })
+      .finally(() => {
+        setLoadingRelease(false);
+      });
+
     if (isElectron && window.electronAPI) {
-      window.electronAPI.getAppVersion().then(ver => {
+      window.electronAPI.getAppVersion().then((ver) => {
         if (ver) setCurrentVersion(ver);
       }).catch(() => {});
 
       const removeStatusListener = window.electronAPI.onUpdaterStatus((data: UpdaterStatusData) => {
-        setChecking(false);
         if (data.status === 'checking') {
           setStatus('checking');
         } else if (data.status === 'available') {
@@ -90,55 +107,10 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     }
   };
 
-  // Base download paths for desktop application installers across platforms
-  const downloadLinks = {
-    windows: [
-      {
-        name: 'NSIS Installer (.exe)',
-        badge: 'Recommended',
-        desc: 'Standard Windows installer with auto-updates',
-        file: `Employee Management System-Setup-${targetVersion}.exe`,
-        path: `/updates/Windows/Employee%20Management%20System-Setup-${targetVersion}.exe`
-      },
-      {
-        name: 'Portable (.exe)',
-        badge: 'No Admin Required',
-        desc: 'Run directly without installation',
-        file: `Employee Management System-Portable-${targetVersion}.exe`,
-        path: `/updates/Windows/Employee%20Management%20System-Portable-${targetVersion}.exe`
-      },
-      {
-        name: 'ZIP Package (.zip)',
-        badge: 'Archive',
-        desc: 'Standalone executable compressed archive',
-        file: `Employee Management System-${targetVersion}-win.zip`,
-        path: `/updates/Windows/Employee%20Management%20System-${targetVersion}-win.zip`
-      }
-    ],
-    linux: [
-      {
-        name: 'AppImage (.AppImage)',
-        badge: 'Universal Linux',
-        desc: 'Runs on Ubuntu, Fedora, Mint, Debian, Arch & all distros',
-        file: `Employee Management System-${targetVersion}.AppImage`,
-        path: `/updates/Linux/Employee%20Management%20System-${targetVersion}.AppImage`
-      },
-      {
-        name: 'DEB Package (.deb)',
-        badge: 'Ubuntu / Debian',
-        desc: 'Native package for Debian, Ubuntu, Linux Mint, Pop!_OS',
-        file: `Employee Management System_${targetVersion}_amd64.deb`,
-        path: `/updates/Linux/Employee%20Management%20System_${targetVersion}_amd64.deb`
-      },
-      {
-        name: 'RPM Package (.rpm)',
-        badge: 'Fedora / RHEL',
-        desc: 'Native package for Fedora, RedHat, CentOS, openSUSE',
-        file: `Employee Management System-${targetVersion}.x86_64.rpm`,
-        path: `/updates/Linux/Employee%20Management%20System-${targetVersion}.x86_64.rpm`
-      }
-    ]
-  };
+  const winUrl = releaseInfo?.windowsInstallerUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
+  const linuxUrl = releaseInfo?.linuxAppImageUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
+  const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
+  const displayVersion = releaseInfo?.version || targetVersion;
 
   if (!isOpen) return null;
 
@@ -189,7 +161,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70 backdrop-blur-sm">
             <span className="text-sm font-semibold text-slate-800 tracking-wide flex items-center gap-2">
               <Sparkles size={16} className="text-indigo-600 animate-spin" style={{ animationDuration: '6s' }} />
-              {isElectron ? 'EMS Desktop App Update' : 'Download EMS Desktop App'}
+              {isElectron ? 'Novynth Workflow Desktop App Update' : 'Download Novynth Workflow Desktop App'}
             </span>
             <button 
               onClick={handleClose}
@@ -202,32 +174,6 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
 
           {/* Content Body */}
           <div className="p-6 space-y-6">
-
-            {/* Platform Selection Tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-xl">
-              <button
-                onClick={() => setSelectedPlatform('windows')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
-                  selectedPlatform === 'windows'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Monitor size={15} />
-                Windows
-              </button>
-              <button
-                onClick={() => setSelectedPlatform('linux')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
-                  selectedPlatform === 'linux'
-                    ? 'bg-white text-indigo-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Terminal size={15} />
-                Linux
-              </button>
-            </div>
 
             {/* Electron auto-update prompt */}
             {isElectron && status === 'downloaded' && (
@@ -245,47 +191,151 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
               </div>
             )}
 
-            {/* Download Installers List for Selected Platform */}
+            {/* Primary Recommended Download Button */}
+            {!isElectron && (
+              <div className="p-5 bg-gradient-to-br from-indigo-50 via-slate-50 to-purple-50 rounded-2xl border border-indigo-100/80 text-center space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100/70 text-indigo-700 rounded-full text-xs font-semibold">
+                  <span>Detected Operating System: {detectedOS === 'windows' ? 'Windows' : detectedOS === 'linux' ? 'Linux' : 'Unsupported Platform'}</span>
+                </div>
+                
+                <h3 className="text-lg font-bold text-slate-900">Download Desktop App</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Experience full offline capability, desktop notifications, and native system integration.
+                </p>
+
+                <div className="pt-2 flex flex-col items-center gap-2">
+                  {detectedOS === 'windows' && (
+                    <a
+                      href={winUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <Download size={18} />
+                      Download for Windows (Setup .exe)
+                    </a>
+                  )}
+
+                  {detectedOS === 'linux' && (
+                    <a
+                      href={linuxUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <Download size={18} />
+                      Download for Linux (.AppImage)
+                    </a>
+                  )}
+
+                  {detectedOS === 'other' && (
+                    <p className="text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                      Your operating system is not automatically recognized. Please select a package below.
+                    </p>
+                  )}
+
+                  <span className="text-[11px] font-medium text-slate-400 mt-1">
+                    Latest Version: <strong className="text-slate-600">{displayVersion}</strong>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Platform Selection Tabs */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  {selectedPlatform === 'windows' && 'Windows Packages (.exe / .zip)'}
-                  {selectedPlatform === 'linux' && 'Linux Packages (.AppImage / .deb / .rpm)'}
+                  Other Platforms & Packages
                 </h4>
-                <span className="text-[11px] font-medium text-slate-400">v{targetVersion}</span>
+                <a
+                  href={releasePageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                >
+                  GitHub Releases <ExternalLink size={12} />
+                </a>
               </div>
 
-              <div className="space-y-2.5">
-                {downloadLinks[selectedPlatform].map((item, idx) => (
+              <div className="flex bg-slate-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setSelectedPlatform('windows')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
+                    selectedPlatform === 'windows'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Monitor size={15} />
+                  Windows (.exe)
+                </button>
+                <button
+                  onClick={() => setSelectedPlatform('linux')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold transition-all ${
+                    selectedPlatform === 'linux'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Terminal size={15} />
+                  Linux (.AppImage)
+                </button>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                {selectedPlatform === 'windows' && (
                   <a
-                    key={idx}
-                    href={item.path}
-                    download={item.file}
-                    className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-indigo-300 bg-white hover:bg-indigo-50/40 rounded-xl transition-all duration-200 group shadow-xs hover:shadow-sm"
+                    href={winUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-indigo-300 bg-white hover:bg-indigo-50/40 rounded-xl transition-all group"
                   >
-                    <div className="space-y-0.5 min-w-0 pr-2">
+                    <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-                          {item.name}
+                        <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600">
+                          Windows Setup Installer (.exe)
                         </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 group-hover:bg-indigo-100 group-hover:text-indigo-700 shrink-0">
-                          {item.badge}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                          NSIS
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 truncate">{item.desc}</p>
+                      <p className="text-xs text-slate-500">Official Windows setup with auto-update support</p>
                     </div>
-
-                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all shrink-0">
+                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
                       <Download size={18} />
                     </div>
                   </a>
-                ))}
+                )}
+
+                {selectedPlatform === 'linux' && (
+                  <a
+                    href={linuxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 rounded-xl transition-all group"
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-900 group-hover:text-purple-600">
+                          Universal Linux AppImage (.AppImage)
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                          All Distros
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">Standalone binary executable for Ubuntu, Fedora, Mint & Arch</p>
+                    </div>
+                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-all">
+                      <Download size={18} />
+                    </div>
+                  </a>
+                )}
               </div>
             </div>
 
             {/* Footer Notice */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Supports Windows 10/11 & Linux</span>
+              <span>Hosted securely via GitHub Releases</span>
               <button
                 onClick={handleClose}
                 className="font-semibold text-slate-700 hover:text-indigo-600 transition-colors"

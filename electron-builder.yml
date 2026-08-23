@@ -12,11 +12,9 @@ files:
   - package.json
 
 publish:
-  - provider: github
-    owner: Tejaspadaki
-    repo: EMS-V1-frontend-V1
-  - provider: generic
-    url: https://ems-backend.yuktiyantra.com/updates/
+  provider: github
+  owner: Tejaspadaki
+  repo: EMS-V1-frontend-V1
 
 extraMetadata:
   author:

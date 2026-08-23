@@ -70,27 +70,4 @@ if (fs.existsSync(distElectron)) {
   });
 }
 
-// Mirror all organized release files directly to EMS_Backend/backend/public/updates
-const backendUpdatesDir = path.join(__dirname, '..', '..', 'EMS_Backend', 'backend', 'public', 'updates');
-if (fs.existsSync(backendUpdatesDir)) {
-  console.log('[Dist Organizer] Mirroring organized release files to EMS_Backend/backend/public/updates...');
-  const ignoredArtifacts = ['win-unpacked', 'linux-unpacked', 'macOS', 'mac', '__appImage-x64', 'builder-debug.yml', 'builder-effective-config.yaml'];
-  function copyFolderRecursiveSync(src, dest) {
-    if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-    const items = fs.readdirSync(src);
-    items.forEach(item => {
-      if (ignoredArtifacts.includes(item)) return;
-      const srcPath = path.join(src, item);
-      const destPath = path.join(dest, item);
-      if (fs.statSync(srcPath).isDirectory()) {
-        copyFolderRecursiveSync(srcPath, destPath);
-      } else {
-        fs.copyFileSync(srcPath, destPath);
-      }
-    });
-  }
-  copyFolderRecursiveSync(distElectron, backendUpdatesDir);
-  console.log('[Dist Organizer] Successfully mirrored clean builds to EMS_Backend public updates portal!');
-}
-
-console.log('[Dist Organizer] Successfully organized dist-electron/ structure!');
+console.log('[Dist Organizer] Successfully organized build artifacts in dist-electron/!');

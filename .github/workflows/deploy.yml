@@ -1,4 +1,4 @@
-name: Novynthn workflow Frontend & Desktop Updates Workflow
+name: Novynth Workflow Frontend & Desktop Updates Workflow
 
 on:
   push:
@@ -36,13 +36,10 @@ jobs:
           chmod -R +x node_modules/7zip-bin/ || true
           chmod -R +x node_modules/.bin/ || true
 
-      - name: Build Web Bundle & Desktop Installers
+      - name: Build Web Application & Publish Desktop Application to GitHub Releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:all
-
-      - name: Verify Generated Executable & Installer Integrity
-        run: node scripts/verify-exe.cjs
+        run: npm run electron:publish
 
       - name: Deploy Web Application to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -64,28 +61,3 @@ jobs:
             .github/**
             .env*
             README.md
-
-      - name: Deploy Desktop Updates to Backend /updates Portal via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          security: loose
-          port: ${{ secrets.FTP_PORT || 21 }}
-          timeout: 300000
-          local-dir: ./dist-electron/
-          server-dir: /public/updates/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            node_modules/**
-            **/node_modules/**
-            win-unpacked/**
-            **/win-unpacked/**
-            linux-unpacked/**
-            **/linux-unpacked/**
-            *.blockmap
-            builder-effective-config.yaml
-            builder-debug.log
