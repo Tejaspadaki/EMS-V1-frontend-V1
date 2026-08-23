@@ -47,7 +47,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          protocol: ${{ secrets.FTP_PROTOCOL || 'ftp' }}
           security: loose
           port: ${{ secrets.FTP_PORT || 21 }}
           timeout: 300000
