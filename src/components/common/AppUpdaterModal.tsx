@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Info, Download, Sparkles, Monitor, Terminal, ExternalLink } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
-import { fetchLatestRelease, detectOS, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
+import { fetchLatestRelease, detectOS, DIRECT_WINDOWS_DOWNLOAD_URL, DIRECT_LINUX_DOWNLOAD_URL, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
 
 interface AppUpdaterModalProps {
   isOpen: boolean;
@@ -107,8 +107,8 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     }
   };
 
-  const winUrl = releaseInfo?.windowsInstallerUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
-  const linuxUrl = releaseInfo?.linuxAppImageUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
+  const winUrl = releaseInfo?.windowsInstallerUrl || DIRECT_WINDOWS_DOWNLOAD_URL;
+  const linuxUrl = releaseInfo?.linuxAppImageUrl || DIRECT_LINUX_DOWNLOAD_URL;
   const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
   const displayVersion = releaseInfo?.version || targetVersion;
 

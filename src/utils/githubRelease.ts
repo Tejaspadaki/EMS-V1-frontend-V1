@@ -9,15 +9,19 @@ export interface LatestReleaseInfo {
   version: string;
   releaseNotes?: string;
   htmlUrl: string;
-  windowsInstallerUrl: string | null;
-  linuxAppImageUrl: string | null;
+  windowsInstallerUrl: string;
+  linuxAppImageUrl: string;
   assets: ReleaseAsset[];
 }
 
 const GITHUB_OWNER = 'Tejaspadaki';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
+const DEFAULT_VERSION = '1.7.0';
 const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
 const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
+
+export const DIRECT_WINDOWS_DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/Novynth-Workflow-Setup-${DEFAULT_VERSION}.exe`;
+export const DIRECT_LINUX_DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/Novynth-Workflow-${DEFAULT_VERSION}.AppImage`;
 
 export type OperatingSystem = 'windows' | 'linux' | 'other';
 
@@ -34,7 +38,7 @@ export function detectOS(): OperatingSystem {
 
 /**
  * Fetch the latest GitHub Release metadata dynamically.
- * Resolves direct download links for Windows setup exe and Linux AppImage without hardcoding versions.
+ * Resolves direct download links for Windows setup exe and Linux AppImage.
  */
 export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
   try {
@@ -49,7 +53,7 @@ export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
     }
 
     const data = await response.json();
-    const tagName = data.tag_name || 'v1.7.0';
+    const tagName = data.tag_name || `v${DEFAULT_VERSION}`;
     const version = tagName.replace(/^v/, '');
     const htmlUrl = data.html_url || RELEASES_PAGE_URL;
     const releaseNotes = data.body || '';
@@ -68,23 +72,26 @@ export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
     // Identify Linux AppImage (.AppImage)
     const linuxAsset = assets.find((a) => a.name.endsWith('.AppImage'));
 
+    const fallbackWinUrl = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${tagName}/Novynth-Workflow-Setup-${version}.exe`;
+    const fallbackLinuxUrl = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${tagName}/Novynth-Workflow-${version}.AppImage`;
+
     return {
       tagName,
       version,
       releaseNotes,
       htmlUrl,
-      windowsInstallerUrl: winAsset ? winAsset.browser_download_url : `${RELEASES_PAGE_URL}`,
-      linuxAppImageUrl: linuxAsset ? linuxAsset.browser_download_url : `${RELEASES_PAGE_URL}`,
+      windowsInstallerUrl: winAsset ? winAsset.browser_download_url : fallbackWinUrl,
+      linuxAppImageUrl: linuxAsset ? linuxAsset.browser_download_url : fallbackLinuxUrl,
       assets,
     };
   } catch (error) {
-    console.warn('[GitHub Release] Failed to fetch latest release API, using fallback URL:', error);
+    console.warn('[GitHub Release] Failed to fetch latest release API, using direct download URLs:', error);
     return {
-      tagName: 'v1.7.0',
-      version: '1.7.0',
+      tagName: `v${DEFAULT_VERSION}`,
+      version: DEFAULT_VERSION,
       htmlUrl: RELEASES_PAGE_URL,
-      windowsInstallerUrl: RELEASES_PAGE_URL,
-      linuxAppImageUrl: RELEASES_PAGE_URL,
+      windowsInstallerUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
+      linuxAppImageUrl: DIRECT_LINUX_DOWNLOAD_URL,
       assets: [],
     };
   }

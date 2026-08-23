@@ -4,7 +4,7 @@ import { changePassword } from '../../api/auth.api';
 import { Lock, User, Shield, Bell, Moon, KeyRound, CheckCircle, Download, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { fetchLatestRelease } from '../../utils/githubRelease';
+import { fetchLatestRelease, DIRECT_WINDOWS_DOWNLOAD_URL, DIRECT_LINUX_DOWNLOAD_URL } from '../../utils/githubRelease';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -12,14 +12,19 @@ export const SettingsPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [releaseInfo, setReleaseInfo] = useState<{ version: string; winUrl: string; linuxUrl: string; releaseUrl: string } | null>(null);
+  const [releaseInfo, setReleaseInfo] = useState<{ version: string; winUrl: string; linuxUrl: string; releaseUrl: string }>({
+    version: '1.7.0',
+    winUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
+    linuxUrl: DIRECT_LINUX_DOWNLOAD_URL,
+    releaseUrl: 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+  });
 
   useEffect(() => {
     fetchLatestRelease().then((info) => {
       setReleaseInfo({
         version: info.version,
-        winUrl: info.windowsInstallerUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
-        linuxUrl: info.linuxAppImageUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
+        winUrl: info.windowsInstallerUrl || DIRECT_WINDOWS_DOWNLOAD_URL,
+        linuxUrl: info.linuxAppImageUrl || DIRECT_LINUX_DOWNLOAD_URL,
         releaseUrl: info.htmlUrl || 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest',
       });
     }).catch(() => {});
