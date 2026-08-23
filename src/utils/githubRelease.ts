@@ -5,12 +5,13 @@ export interface ReleaseAsset {
 }
 
 export interface LatestReleaseInfo {
+  hasRelease: boolean;
   tagName: string;
   version: string;
   releaseNotes?: string;
   htmlUrl: string;
-  windowsInstallerUrl: string;
-  linuxAppImageUrl: string;
+  windowsInstallerUrl: string | null;
+  linuxAppImageUrl: string | null;
   assets: ReleaseAsset[];
 }
 
@@ -18,10 +19,7 @@ const GITHUB_OWNER = 'Tejaspadaki';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
 const DEFAULT_VERSION = '1.7.0';
 const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
-const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
-
-export const DIRECT_WINDOWS_DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/Novynth-Workflow-Setup-${DEFAULT_VERSION}.exe`;
-export const DIRECT_LINUX_DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/Novynth-Workflow-${DEFAULT_VERSION}.AppImage`;
+const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
 
 export type OperatingSystem = 'windows' | 'linux' | 'other';
 
@@ -72,26 +70,25 @@ export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
     // Identify Linux AppImage (.AppImage)
     const linuxAsset = assets.find((a) => a.name.endsWith('.AppImage'));
 
-    const fallbackWinUrl = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${tagName}/Novynth-Workflow-Setup-${version}.exe`;
-    const fallbackLinuxUrl = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${tagName}/Novynth-Workflow-${version}.AppImage`;
-
     return {
+      hasRelease: !!(winAsset || linuxAsset),
       tagName,
       version,
       releaseNotes,
       htmlUrl,
-      windowsInstallerUrl: winAsset ? winAsset.browser_download_url : fallbackWinUrl,
-      linuxAppImageUrl: linuxAsset ? linuxAsset.browser_download_url : fallbackLinuxUrl,
+      windowsInstallerUrl: winAsset ? winAsset.browser_download_url : null,
+      linuxAppImageUrl: linuxAsset ? linuxAsset.browser_download_url : null,
       assets,
     };
   } catch (error) {
-    console.warn('[GitHub Release] Failed to fetch latest release API, using direct download URLs:', error);
+    console.warn('[GitHub Release] No published release found yet on GitHub Releases:', error);
     return {
+      hasRelease: false,
       tagName: `v${DEFAULT_VERSION}`,
       version: DEFAULT_VERSION,
       htmlUrl: RELEASES_PAGE_URL,
-      windowsInstallerUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
-      linuxAppImageUrl: DIRECT_LINUX_DOWNLOAD_URL,
+      windowsInstallerUrl: null,
+      linuxAppImageUrl: null,
       assets: [],
     };
   }

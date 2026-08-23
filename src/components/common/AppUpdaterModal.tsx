@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Info, Download, Sparkles, Monitor, Terminal, ExternalLink } from 'lucide-react';
+import { X, Info, Download, Sparkles, Monitor, Terminal, ExternalLink, AlertTriangle } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
-import { fetchLatestRelease, detectOS, DIRECT_WINDOWS_DOWNLOAD_URL, DIRECT_LINUX_DOWNLOAD_URL, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
+import { fetchLatestRelease, detectOS, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
 
 interface AppUpdaterModalProps {
   isOpen: boolean;
@@ -107,10 +107,11 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     }
   };
 
-  const winUrl = releaseInfo?.windowsInstallerUrl || DIRECT_WINDOWS_DOWNLOAD_URL;
-  const linuxUrl = releaseInfo?.linuxAppImageUrl || DIRECT_LINUX_DOWNLOAD_URL;
-  const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest`;
+  const winUrl = releaseInfo?.windowsInstallerUrl;
+  const linuxUrl = releaseInfo?.linuxAppImageUrl;
+  const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases`;
   const displayVersion = releaseInfo?.version || targetVersion;
+  const hasReleaseAsset = releaseInfo?.hasRelease && (detectedOS === 'linux' ? !!linuxUrl : !!winUrl);
 
   if (!isOpen) return null;
 
@@ -191,53 +192,76 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
               </div>
             )}
 
-            {/* Primary Recommended Download Button */}
+            {/* Primary Download Section */}
             {!isElectron && (
               <div className="p-5 bg-gradient-to-br from-indigo-50 via-slate-50 to-purple-50 rounded-2xl border border-indigo-100/80 text-center space-y-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100/70 text-indigo-700 rounded-full text-xs font-semibold">
-                  <span>Detected Operating System: {detectedOS === 'windows' ? 'Windows' : detectedOS === 'linux' ? 'Linux' : 'Unsupported Platform'}</span>
+                  <span>Detected OS: {detectedOS === 'windows' ? 'Windows' : detectedOS === 'linux' ? 'Linux' : 'Other Platform'}</span>
                 </div>
                 
-                <h3 className="text-lg font-bold text-slate-900">Download Desktop App</h3>
+                <h3 className="text-lg font-bold text-slate-900">Download Desktop Application</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Experience full offline capability, desktop notifications, and native system integration.
+                  Experience offline capability, native desktop notifications, and real-time background sync.
                 </p>
 
-                <div className="pt-2 flex flex-col items-center gap-2">
-                  {detectedOS === 'windows' && (
-                    <a
-                      href={winUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                      <Download size={18} />
-                      Download for Windows (Setup .exe)
-                    </a>
-                  )}
+                {loadingRelease ? (
+                  <div className="py-4 text-xs font-medium text-slate-500 flex items-center justify-center gap-2">
+                    <Sparkles size={14} className="animate-spin text-indigo-600" />
+                    Checking for latest published release...
+                  </div>
+                ) : hasReleaseAsset ? (
+                  <div className="pt-2 flex flex-col items-center gap-2">
+                    {detectedOS === 'windows' && winUrl && (
+                      <a
+                        href={winUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                      >
+                        <Download size={18} />
+                        Download for Windows (Setup .exe)
+                      </a>
+                    )}
 
-                  {detectedOS === 'linux' && (
-                    <a
-                      href={linuxUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                      <Download size={18} />
-                      Download for Linux (.AppImage)
-                    </a>
-                  )}
+                    {detectedOS === 'linux' && linuxUrl && (
+                      <a
+                        href={linuxUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+                      >
+                        <Download size={18} />
+                        Download for Linux (.AppImage)
+                      </a>
+                    )}
 
-                  {detectedOS === 'other' && (
-                    <p className="text-xs text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
-                      Your operating system is not automatically recognized. Please select a package below.
-                    </p>
-                  )}
-
-                  <span className="text-[11px] font-medium text-slate-400 mt-1">
-                    Latest Version: <strong className="text-slate-600">{displayVersion}</strong>
-                  </span>
-                </div>
+                    <span className="text-[11px] font-medium text-slate-400 mt-1">
+                      Latest Version: <strong className="text-slate-600">v{displayVersion}</strong>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-left space-y-2">
+                    <div className="flex items-start gap-2 text-amber-800">
+                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-bold">Release v{displayVersion} Pending GitHub Publish</p>
+                        <p className="text-[11px] text-amber-700 mt-0.5">
+                          The installer binary is being compiled & published via GitHub Actions. Push to <code className="bg-amber-100 px-1 py-0.5 rounded">main</code> branch to generate release artifacts on GitHub.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="pt-1 text-center">
+                      <a
+                        href={releasePageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white font-medium text-xs rounded-lg hover:bg-amber-700 transition-colors"
+                      >
+                        View Releases Page <ExternalLink size={12} />
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -245,7 +269,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Other Platforms & Packages
+                  Release Packages
                 </h4>
                 <a
                   href={releasePageUrl}
@@ -284,51 +308,63 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
 
               <div className="space-y-2 pt-1">
                 {selectedPlatform === 'windows' && (
-                  <a
-                    href={winUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-indigo-300 bg-white hover:bg-indigo-50/40 rounded-xl transition-all group"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600">
-                          Windows Setup Installer (.exe)
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                          NSIS
-                        </span>
+                  winUrl ? (
+                    <a
+                      href={winUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-indigo-300 bg-white hover:bg-indigo-50/40 rounded-xl transition-all group"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600">
+                            Windows Setup Installer (.exe)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                            NSIS
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500">Official Windows setup with auto-update support</p>
                       </div>
-                      <p className="text-xs text-slate-500">Official Windows setup with auto-update support</p>
+                      <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                        <Download size={18} />
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                      Windows installer binary will be available once published to GitHub Releases.
                     </div>
-                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                      <Download size={18} />
-                    </div>
-                  </a>
+                  )
                 )}
 
                 {selectedPlatform === 'linux' && (
-                  <a
-                    href={linuxUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 rounded-xl transition-all group"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-900 group-hover:text-purple-600">
-                          Universal Linux AppImage (.AppImage)
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
-                          All Distros
-                        </span>
+                  linuxUrl ? (
+                    <a
+                      href={linuxUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 rounded-xl transition-all group"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-slate-900 group-hover:text-purple-600">
+                            Universal Linux AppImage (.AppImage)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            All Distros
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500">Standalone binary executable for Ubuntu, Fedora, Mint & Arch</p>
                       </div>
-                      <p className="text-xs text-slate-500">Standalone binary executable for Ubuntu, Fedora, Mint & Arch</p>
+                      <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-all">
+                        <Download size={18} />
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                      Linux AppImage binary will be available once published to GitHub Releases.
                     </div>
-                    <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-all">
-                      <Download size={18} />
-                    </div>
-                  </a>
+                  )
                 )}
               </div>
             </div>
