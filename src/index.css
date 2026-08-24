@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --color-primary:        #1E293B;
@@ -383,49 +381,3 @@
       border-bottom: 1px solid #E2E8F0;
     }
   }
-  .novynth-main {
-    margin-left: 0 !important;
-    padding: 16px;
-  }
-
-  .novynth-sidebar-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 95;
-  }
-
-  .novynth-topbar-user-info {
-    display: none;
-  }
-
-@media (max-width: 520px) {
-  .novynth-public-profile-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  #public-profile-card > div:last-of-type {
-    padding: 24px 20px 20px !important;
-  }
-}
-
-.novynth-diff-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-.novynth-diff-left {
-  border-right: 1px solid #E2E8F0;
-}
-@media (max-width: 520px) {
-  .novynth-diff-split {
-    grid-template-columns: 1fr;
-  }
-  .novynth-diff-left {
-    border-right: none;
-    border-bottom: 1px solid #E2E8F0;
-  }
-}

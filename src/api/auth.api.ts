@@ -2,7 +2,19 @@ import api from './axios';
 import { useAuthStore } from '../store/authStore';
 
 export const loginWithEmail = async (email: string, password: string) => {
-  const response = await api.post('/auth/login', { email, password });
+  let response;
+  try {
+    response = await api.post('/auth/login', { email, password });
+    if (typeof response.data === 'string' || !response.data?.data) {
+      response = await api.post('/api/auth/login', { email, password });
+    }
+  } catch (err: any) {
+    if (err.response?.status === 404 || typeof err.response?.data === 'string') {
+      response = await api.post('/api/auth/login', { email, password });
+    } else {
+      throw err;
+    }
+  }
   return response.data.data;
 };
 
