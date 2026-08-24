@@ -1,9 +1,8 @@
-name: Novynth Workflow Frontend & Desktop Production Release Workflow
+name: Build & Publish Novynth Desktop
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -129,44 +128,3 @@ jobs:
             dist-electron/latest-linux.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy-web:
-    name: Deploy Web Application to cPanel via FTP
-    needs: [build-windows-release, build-linux-release]
-    runs-on: ubuntu-latest
-    if: ${{ secrets.FTP_SERVER != '' }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install Dependencies & Build Frontend
-        run: |
-          npm ci
-          npm run build
-
-      - name: Deploy Web Application to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          security: loose
-          port: ${{ secrets.FTP_PORT || 21 }}
-          local-dir: ./dist/
-          server-dir: /
-          exclude: |
-            **/.git*
-            **/.git*/**
-            node_modules/**
-            **/node_modules/**
-            .github/**
-            .env*
-            README.md

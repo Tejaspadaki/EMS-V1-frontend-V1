@@ -17,7 +17,7 @@ export interface LatestReleaseInfo {
 
 const GITHUB_OWNER = 'Tejaspadaki';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
-const DEFAULT_VERSION = '1.7.0';
+const DEFAULT_VERSION = '1.7.1';
 const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
 export const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
 

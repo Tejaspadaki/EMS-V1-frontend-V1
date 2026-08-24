@@ -453,10 +453,10 @@
                         <div class="sub">Standard Windows 10/11 installer with automatic updates</div>
                     </div>
                     <div class="actions-group">
-                        <button class="btn-copy" onclick="copyLink('/updates/Windows/Novynth-Workflow-Setup.exe', 'Windows Setup')" title="Copy download link">
+                        <button class="btn-copy" id="copyWinSetup" onclick="copyLink(this.dataset.url, 'Windows Setup')" title="Copy download link">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
                         </button>
-                        <a href="/updates/Windows/Novynth-Workflow-Setup.exe" class="download-icon-btn" download="Novynth Workflow Setup.exe">
+                        <a id="btnWinSetup" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
@@ -474,10 +474,10 @@
                         <div class="sub">Run directly without requiring system administrative privileges</div>
                     </div>
                     <div class="actions-group">
-                        <button class="btn-copy" onclick="copyLink('/updates/Windows/Novynth-Workflow-Portable.exe', 'Portable Executable')" title="Copy download link">
+                        <button class="btn-copy" id="copyWinPortable" onclick="copyLink(this.dataset.url, 'Portable Executable')" title="Copy download link">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
                         </button>
-                        <a href="/updates/Windows/Novynth-Workflow-Portable.exe" class="download-icon-btn" download="Novynth Workflow Portable.exe">
+                        <a id="btnWinPortable" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
@@ -498,10 +498,10 @@
                         <div class="sub">Runs on Ubuntu, Mint, Fedora, Debian, Arch & all Linux distros</div>
                     </div>
                     <div class="actions-group">
-                        <button class="btn-copy" onclick="copyLink('/updates/Linux/AppImage.AppImage', 'AppImage')" title="Copy download link">
+                        <button class="btn-copy" id="copyLinuxAppImage" onclick="copyLink(this.dataset.url, 'AppImage')" title="Copy download link">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
                         </button>
-                        <a href="/updates/Linux/AppImage.AppImage" class="download-icon-btn" download>
+                        <a id="btnLinuxAppImage" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
@@ -519,10 +519,10 @@
                         <div class="sub">Native debian package for Ubuntu, Linux Mint, Debian & Pop!_OS</div>
                     </div>
                     <div class="actions-group">
-                        <button class="btn-copy" onclick="copyLink('/updates/Linux/DEB.deb', 'DEB Package')" title="Copy download link">
+                        <button class="btn-copy" id="copyLinuxDeb" onclick="copyLink(this.dataset.url, 'DEB Package')" title="Copy download link">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
                         </button>
-                        <a href="/updates/Linux/DEB.deb" class="download-icon-btn" download>
+                        <a id="btnLinuxDeb" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
@@ -611,35 +611,58 @@
             }, 3000);
         }
 
-        // Dynamic Auto-Version Fetcher from latest release metadata
-        const versionPaths = [
-            '/updates/latest.yml',
-            '/updates/Windows/latest.yml',
-            '/updates/Linux/latest-linux.yml'
-        ];
+        // Dynamic GitHub Releases Auto-Fetcher
+        const GITHUB_API_LATEST = 'https://api.github.com/repos/Tejaspadaki/EMS-V1-frontend-V1/releases/latest';
 
-        async function autoUpdateVersionBadge() {
-            for (const vPath of versionPaths) {
-                try {
-                    const res = await fetch(vPath + '?t=' + Date.now());
-                    if (res.ok) {
-                        const text = await res.text();
-                        const match = text.match(/version:\s*['"]?([^'"\r\n]+)['"]?/i);
-                        if (match && match[1]) {
-                            const vText = match[1].trim();
-                            document.getElementById('versionBadge').innerHTML = `
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09Z" /></svg>
-                                Version v${vText}
-                            `;
-                            break;
-                        }
-                    }
-                } catch (err) {
-                    // Ignore missing yml during initial setup
+        async function fetchGitHubReleases() {
+            try {
+                const res = await fetch(GITHUB_API_LATEST);
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                const tagName = data.tag_name || 'v1.7.1';
+                const versionText = tagName.replace(/^v/, '');
+                
+                document.getElementById('versionBadge').innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09Z" /></svg>
+                    Version v${versionText}
+                `;
+
+                const assets = data.assets || [];
+                const winSetupAsset = assets.find(a => a.name.endsWith('.exe') && (a.name.includes('Setup') || a.name.includes('novynth') || a.name.includes('Novynth')));
+                const winPortableAsset = assets.find(a => a.name.endsWith('.exe') && a.name.includes('Portable'));
+                const linuxAppImageAsset = assets.find(a => a.name.endsWith('.AppImage'));
+                const linuxDebAsset = assets.find(a => a.name.endsWith('.deb'));
+
+                if (winSetupAsset) {
+                    const btn = document.getElementById('btnWinSetup');
+                    const copyBtn = document.getElementById('copyWinSetup');
+                    if (btn) btn.href = winSetupAsset.browser_download_url;
+                    if (copyBtn) copyBtn.dataset.url = winSetupAsset.browser_download_url;
                 }
+                if (winPortableAsset) {
+                    const btn = document.getElementById('btnWinPortable');
+                    const copyBtn = document.getElementById('copyWinPortable');
+                    if (btn) btn.href = winPortableAsset.browser_download_url;
+                    if (copyBtn) copyBtn.dataset.url = winPortableAsset.browser_download_url;
+                }
+                if (linuxAppImageAsset) {
+                    const btn = document.getElementById('btnLinuxAppImage');
+                    const copyBtn = document.getElementById('copyLinuxAppImage');
+                    if (btn) btn.href = linuxAppImageAsset.browser_download_url;
+                    if (copyBtn) copyBtn.dataset.url = linuxAppImageAsset.browser_download_url;
+                }
+                if (linuxDebAsset) {
+                    const btn = document.getElementById('btnLinuxDeb');
+                    const copyBtn = document.getElementById('copyLinuxDeb');
+                    if (btn) btn.href = linuxDebAsset.browser_download_url;
+                    if (copyBtn) copyBtn.dataset.url = linuxDebAsset.browser_download_url;
+                }
+            } catch (err) {
+                console.warn('[Download Portal] Could not fetch GitHub Releases metadata:', err);
             }
         }
-        autoUpdateVersionBadge();
+        fetchGitHubReleases();
     </script>
 </body>
 </html>

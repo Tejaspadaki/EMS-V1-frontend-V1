@@ -1,7 +1,7 @@
 {
   "name": "novynth-workflow-frontend",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.7.1",
   "type": "module",
   "main": "electron/main.cjs",
   "description": "Novynth Workflow Desktop App",
@@ -22,6 +22,7 @@
     "build:win": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --x64",
     "build:linux": "node scripts/generate-icons.cjs && npm run build && electron-builder --linux",
     "build:all": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --linux",
+    "verify": "node scripts/verify-exe.cjs",
     "dist": "npm run build:all"
   },
   "dependencies": {
