@@ -55,8 +55,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist-electron/Novynth-Workflow-Setup-${{ steps.pkg.outputs.version }}.exe
-            dist-electron/Novynth-Workflow-Setup-${{ steps.pkg.outputs.version }}.exe.blockmap
+            dist-electron/*.exe
+            dist-electron/*.blockmap
             dist-electron/latest.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
