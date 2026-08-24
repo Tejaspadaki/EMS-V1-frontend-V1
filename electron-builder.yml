@@ -26,6 +26,8 @@ extraMetadata:
 win:
   executableName: novynth-workflow
   icon: build/icon.ico
+  publisherName: Novynth Labs Pvt Ltd
+  legalTrademarks: Novynth Labs Pvt Ltd
   target:
     - target: nsis
       arch:
@@ -40,6 +42,7 @@ nsis:
   createDesktopShortcut: always
   createStartMenuShortcut: true
   shortcutName: "Novynth Workflow"
+  publisherName: "Novynth Labs Pvt Ltd"
   runAfterFinish: true
   artifactName: "Novynth-Workflow-Setup-${version}.${ext}"
 
@@ -61,7 +64,7 @@ linux:
         - x64
 
 appImage:
-  artifactName: "${productName}-${version}.${ext}"
+  artifactName: "Novynth-Workflow-${version}.${ext}"
 
 deb:
-  artifactName: "${productName}_${version}_amd64.${ext}"
+  artifactName: "Novynth-Workflow_${version}_amd64.${ext}"
