@@ -50,7 +50,20 @@ export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API returned status ${response.status}`);
+      if (response.status === 404) {
+        console.info('[GitHub Release] No GitHub Release published yet on GitHub repository.');
+      } else {
+        console.warn(`[GitHub Release] API returned status ${response.status}`);
+      }
+      return {
+        hasRelease: false,
+        tagName: `v${DEFAULT_VERSION}`,
+        version: DEFAULT_VERSION,
+        htmlUrl: RELEASES_PAGE_URL,
+        windowsInstallerUrl: null,
+        linuxAppImageUrl: null,
+        assets: [],
+      };
     }
 
     const data = await response.json();
