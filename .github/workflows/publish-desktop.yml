@@ -63,6 +63,7 @@ jobs:
 
   build-linux-release:
     name: Build & Verify Linux Production Release
+    needs: build-windows-release
     runs-on: ubuntu-latest
 
     steps:

@@ -42,7 +42,6 @@ nsis:
   createDesktopShortcut: always
   createStartMenuShortcut: true
   shortcutName: "Novynth Workflow"
-  publisherName: "Novynth Labs Pvt Ltd"
   runAfterFinish: true
   artifactName: "Novynth-Workflow-Setup-${version}.${ext}"
 
