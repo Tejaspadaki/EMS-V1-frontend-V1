@@ -742,7 +742,7 @@
                 if (!res.ok) return;
                 const data = await res.json();
                 
-                const tagName = data.tag_name || 'v1.7.2';
+                const tagName = data.tag_name || 'v1.16.0';
                 const versionText = tagName.replace(/^v/, '');
                 
                 document.getElementById('versionBadge').innerHTML = `
