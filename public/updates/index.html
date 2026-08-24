@@ -3,29 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novynth Workflow Desktop Application - Downloads for Windows & Linux</title>
-    <meta name="description" content="Download official Novynth Workflow Desktop App installers, portable packages, and manifests for Windows and Linux.">
+    <title>Download EMS Desktop App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
-            --primary-border: #c7d2fe;
-            --surface: #ffffff;
-            --background: #f8fafc;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --card-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08);
-            --card-shadow-hover: 0 25px 50px -12px rgba(79, 70, 229, 0.15);
-            --radius-lg: 1.25rem;
-            --radius-md: 0.85rem;
-            --radius-sm: 0.5rem;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -33,763 +15,200 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--background);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.09) 0px, transparent 50%),
-                radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.04) 0px, transparent 70%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: var(--text-main);
-            padding: 2rem 1rem;
-            line-height: 1.5;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 680px;
+            color: #f8fafc;
+            padding: 1.5rem;
         }
 
         .card {
-            background: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2.5rem 2.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1.5rem;
+            padding: 3rem 2.5rem;
+            max-width: 520px;
+            width: 100%;
             text-align: center;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #4f46e5, #8b5cf6, #ec4899);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.25);
         }
 
-        .header-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 1.25rem;
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            border-radius: 1.2rem;
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            border-radius: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 12px 24px -6px rgba(79, 70, 229, 0.35);
-            transition: transform 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
         }
 
-        .card:hover .header-icon {
-            transform: scale(1.05) rotate(-2deg);
+        .icon-wrapper svg {
+            width: 44px;
+            height: 44px;
+            stroke: #ffffff;
         }
 
-        .badge-version {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.95rem;
-            background: var(--primary-light);
-            border: 1px solid var(--primary-border);
-            color: var(--primary-hover);
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.85rem;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            color: #c7d2fe;
             border-radius: 9999px;
-            font-size: 0.8rem;
+            font-size: 0.825rem;
             font-weight: 600;
-            letter-spacing: 0.01em;
-            margin-bottom: 1.1rem;
+            letter-spacing: 0.025em;
+            margin-bottom: 1.25rem;
         }
 
         h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.03em;
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.025em;
         }
 
         p.description {
-            color: var(--text-muted);
-            font-size: 0.95rem;
+            color: #94a3b8;
+            font-size: 0.975rem;
             line-height: 1.6;
-            margin-bottom: 1.75rem;
+            margin-bottom: 2rem;
         }
 
-        /* Platform Switcher Tabs */
-        .tabs-container {
-            display: flex;
-            background: #f1f5f9;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 0.3rem;
-            margin-bottom: 1.5rem;
-            gap: 0.3rem;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 0.65rem 1rem;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-radius: calc(var(--radius-md) - 0.2rem);
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
+        .btn-download {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .tab-btn svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            fill: none;
-        }
-
-        .tab-btn:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.6);
-        }
-
-        .tab-btn.active {
-            background: #ffffff;
-            color: var(--primary);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-        }
-
-        .tab-btn.active svg {
-            stroke: var(--primary);
-        }
-
-        /* Download Options Container */
-        .download-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.85rem;
-        }
-
-        .download-card-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1rem 1.25rem;
-            text-decoration: none;
-            color: var(--text-main);
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            text-align: left;
-            position: relative;
-        }
-
-        .download-card-item:hover {
-            background: #fafafa;
-            border-color: var(--primary-border);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.08);
-        }
-
-        .item-info {
-            flex: 1;
-            padding-right: 0.75rem;
-        }
-
-        .item-info .title-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.25rem;
-            flex-wrap: wrap;
-        }
-
-        .item-info .title {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-main);
-            transition: color 0.2s ease;
-        }
-
-        .download-card-item:hover .item-info .title {
-            color: var(--primary);
-        }
-
-        .item-info .tag {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 0.35rem;
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            text-transform: uppercase;
-        }
-
-        .item-info .size-tag {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 0.35rem;
-            background: #e0e7ff;
-            color: #3730a3;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .item-info .sub {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        .actions-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-copy {
-            width: 36px;
-            height: 36px;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-            background: #ffffff;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-copy:hover {
-            background: #f1f5f9;
-            color: var(--text-main);
-            border-color: #cbd5e1;
-        }
-
-        .btn-copy svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            fill: none;
-        }
-
-        .download-icon-btn {
-            padding: 0.6rem 1.1rem;
-            border-radius: 0.65rem;
-            background: var(--primary-light);
-            color: var(--primary);
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .download-card-item:hover .download-icon-btn {
-            background: var(--primary);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .download-icon-btn svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            fill: none;
-        }
-
-        /* Platform Specs & Meta Footer */
-        .specs-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
             gap: 0.75rem;
-            margin-top: 1.75rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed var(--border-color);
-        }
-
-        .spec-box {
-            background: #f8fafc;
-            border: 1px solid #f1f5f9;
-            padding: 0.75rem;
-            border-radius: 0.65rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-align: left;
-        }
-
-        .spec-box svg {
-            width: 20px;
-            height: 20px;
-            stroke: #10b981;
-            flex-shrink: 0;
-        }
-
-        .spec-text {
-            font-size: 0.775rem;
-            color: var(--text-muted);
-        }
-
-        .spec-text strong {
-            display: block;
-            color: var(--text-main);
-            font-size: 0.825rem;
-        }
-
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #0f172a;
+            width: 100%;
+            padding: 1.1rem 2rem;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: #ffffff;
-            padding: 0.75rem 1.25rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            pointer-events: none;
-            z-index: 1000;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 0.85rem;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+            transition: all 0.25s ease;
+        }
+
+        .btn-download:hover {
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(79, 70, 229, 0.6);
+        }
+
+        .btn-download svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .meta-info {
+            margin-top: 1.75rem;
+            font-size: 0.825rem;
+            color: #64748b;
+            display: flex;
+            justify-content: center;
+            gap: 1.25rem;
+        }
+
+        .meta-info span {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.35rem;
         }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .toast svg {
-            width: 18px;
-            height: 18px;
-            stroke: #10b981;
-        }
-
-        footer {
-            margin-top: 1.5rem;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
-        }
-
-        footer a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
+        .meta-info svg {
+            width: 14px;
+            height: 14px;
+            stroke: #64748b;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="header-icon" style="background: transparent; box-shadow: none;">
-                <img src="/updates/logo.png" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Tejaspadaki/EMS-V1-frontend-V1/main/build/icon.png';" alt="Novynth Logo" style="width: 72px; height: 72px; object-fit: contain;" />
-            </div>
-            
-            <div class="badge-version" id="versionBadge">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09Z" /></svg>
-                Novynth Workflow App
-            </div>
-
-            <h1>Novynth Workflow</h1>
-            <p class="description">
-                Official release packages and metadata assets published via GitHub Releases for <strong>Windows</strong> and <strong>Linux</strong>.
-            </p>
-
-            <!-- Platform Switcher Tabs -->
-            <div class="tabs-container">
-                <button class="tab-btn active" id="tabWin" onclick="switchPlatform('windows')">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 5.25h18M3 12h18m-18 6.75h18" />
-                    </svg>
-                    Windows
-                </button>
-                <button class="tab-btn" id="tabLinux" onclick="switchPlatform('linux')">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 002.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
-                    </svg>
-                    Linux
-                </button>
-                <button class="tab-btn" id="tabSource" onclick="switchPlatform('source')">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-                    </svg>
-                    Source & Meta
-                </button>
-            </div>
-
-            <!-- Windows Download Section -->
-            <div class="download-list" id="winDownloads">
-                <!-- Windows Setup EXE -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">Windows Setup (.exe)</span>
-                            <span class="tag">Installer</span>
-                            <span class="size-tag" id="sizeWinSetup">112 MB</span>
-                        </div>
-                        <div class="sub">Standard NSIS Windows setup installer with auto-update integration</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copyWinSetup" onclick="copyLink(this.dataset.url, 'Windows Setup')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnWinSetup" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Download
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Windows Portable EXE -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">Portable Executable (.exe)</span>
-                            <span class="tag">No Admin</span>
-                            <span class="size-tag" id="sizeWinPortable">112 MB</span>
-                        </div>
-                        <div class="sub">Run directly without requiring system administrative privileges</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copyWinPortable" onclick="copyLink(this.dataset.url, 'Portable Executable')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnWinPortable" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Download
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Windows latest.yml -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">Windows Metadata (latest.yml)</span>
-                            <span class="tag">Auto-Update</span>
-                            <span class="size-tag" id="sizeLatestYml">361 Bytes</span>
-                        </div>
-                        <div class="sub">Auto-updater manifest containing SHA512 checksums and version info</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copyLatestYml" onclick="copyLink(this.dataset.url, 'latest.yml')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnLatestYml" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Fetch
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Windows Blockmap -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">NSIS Blockmap (.blockmap)</span>
-                            <span class="tag">Differential</span>
-                            <span class="size-tag" id="sizeBlockmap">119 KB</span>
-                        </div>
-                        <div class="sub">Differential blockmap file for fast partial updates</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copyBlockmap" onclick="copyLink(this.dataset.url, 'NSIS Blockmap')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnBlockmap" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Fetch
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Linux Download Section -->
-            <div class="download-list" id="linuxDownloads" style="display: none;">
-                <!-- Linux AppImage -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">AppImage (.AppImage)</span>
-                            <span class="tag">Universal</span>
-                            <span class="size-tag" id="sizeLinuxAppImage">158 MB</span>
-                        </div>
-                        <div class="sub">Runs on Ubuntu, Mint, Fedora, Debian, Arch & all Linux distros</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copyLinuxAppImage" onclick="copyLink(this.dataset.url, 'AppImage')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnLinuxAppImage" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Download
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Linux latest-linux.yml -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">Linux Metadata (latest-linux.yml)</span>
-                            <span class="tag">Auto-Update</span>
-                            <span class="size-tag" id="sizeLatestLinuxYml">384 Bytes</span>
-                        </div>
-                        <div class="sub">Linux auto-updater manifest containing AppImage SHA512 hashes</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copyLatestLinuxYml" onclick="copyLink(this.dataset.url, 'latest-linux.yml')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnLatestLinuxYml" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Fetch
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Source & Metadata Section -->
-            <div class="download-list" id="sourceDownloads" style="display: none;">
-                <!-- Source Code ZIP -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">Source Code (.zip)</span>
-                            <span class="tag">Source Archive</span>
-                        </div>
-                        <div class="sub">Complete release source code archive in ZIP format</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copySourceZip" onclick="copyLink(this.dataset.url, 'Source ZIP')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnSourceZip" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Download
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Source Code TAR.GZ -->
-                <div class="download-card-item">
-                    <div class="item-info">
-                        <div class="title-row">
-                            <span class="title">Source Code (.tar.gz)</span>
-                            <span class="tag">Source Archive</span>
-                        </div>
-                        <div class="sub">Complete release source code archive in compressed tarball format</div>
-                    </div>
-                    <div class="actions-group">
-                        <button class="btn-copy" id="copySourceTar" onclick="copyLink(this.dataset.url, 'Source TAR.GZ')" title="Copy download link">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" /></svg>
-                        </button>
-                        <a id="btnSourceTar" href="https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest" target="_blank" rel="noopener noreferrer" class="download-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                            </svg>
-                            Download
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Platform Specs & Meta Footer -->
-            <div class="specs-grid">
-                <div class="spec-box">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <div class="spec-text">
-                        <strong>Novynth Certified</strong>
-                        Windows 10/11 & Linux Distros
-                    </div>
-                </div>
-                <div class="spec-box">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <div class="spec-text">
-                        <strong>Auto-Updates Active</strong>
-                        Seamless background updates
-                    </div>
-                </div>
-            </div>
+    <div class="card">
+        <div class="icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0v.917c0 .496-.407.897-.91.897H3.91C3.407 7.064 3 6.663 3 6.167V5.25" />
+            </svg>
         </div>
+        
+        <div class="badge" id="versionBadge">Desktop App v1.16.0</div>
 
-        <footer>
-            Novynth Workflow Desktop Client Download Portal &bull; Exclusively by Novynth Labs
-        </footer>
-    </div>
+        <h1>Employee Management System</h1>
+        <p class="description">
+            Download the official EMS Desktop Application for Windows. Automatic updates and background sync included.
+        </p>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        <span id="toastMsg">Link copied to clipboard!</span>
+        <a href="/updates/download/windows" id="downloadBtn" class="btn-download" download>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span id="btnText">Download for Windows (.exe)</span>
+        </a>
+
+        <div class="meta-info">
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Windows 10 / 11 (64-bit)
+            </span>
+            <span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                Secure & Verified
+            </span>
+        </div>
     </div>
 
     <script>
-        function switchPlatform(platform) {
-            const winDiv = document.getElementById('winDownloads');
-            const linuxDiv = document.getElementById('linuxDownloads');
-            const sourceDiv = document.getElementById('sourceDownloads');
-            const tabWin = document.getElementById('tabWin');
-            const tabLinux = document.getElementById('tabLinux');
-            const tabSource = document.getElementById('tabSource');
-
-            winDiv.style.display = 'none';
-            linuxDiv.style.display = 'none';
-            sourceDiv.style.display = 'none';
-            tabWin.classList.remove('active');
-            tabLinux.classList.remove('active');
-            tabSource.classList.remove('active');
-
-            if (platform === 'linux') {
-                linuxDiv.style.display = 'flex';
-                tabLinux.classList.add('active');
-            } else if (platform === 'source') {
-                sourceDiv.style.display = 'flex';
-                tabSource.classList.add('active');
-            } else {
-                winDiv.style.display = 'flex';
-                tabWin.classList.add('active');
-            }
-        }
-
-        // Detect Operating System
-        const ua = navigator.userAgent.toLowerCase();
-        if (ua.includes('linux') && !ua.includes('android')) {
-            switchPlatform('linux');
-        } else {
-            switchPlatform('windows');
-        }
-
-        // Copy download link function
-        function copyLink(url, name) {
-            const copyUrl = url && url.startsWith('http') ? url : (window.location.origin + (url || '/updates'));
-            navigator.clipboard.writeText(copyUrl).then(() => {
-                showToast(`Copied ${name} link to clipboard!`);
-            }).catch(() => {
-                showToast(`Link: ${copyUrl}`);
-            });
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            toastMsg.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        function formatBytes(bytes) {
-            if (!bytes || bytes === 0) return '';
-            if (bytes < 1024) return bytes + ' Bytes';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(0) + ' MB';
-        }
-
-        // Dynamic GitHub Releases Auto-Fetcher
-        const GITHUB_API_LATEST = 'https://api.github.com/repos/Tejaspadaki/EMS-V1-frontend-V1/releases/latest';
-
-        async function fetchGitHubReleases() {
+        async function initDownloadPortal() {
             try {
-                const res = await fetch(GITHUB_API_LATEST);
-                if (!res.ok) return;
-                const data = await res.json();
-                
-                const tagName = data.tag_name || 'v1.16.0';
-                const versionText = tagName.replace(/^v/, '');
-                
-                document.getElementById('versionBadge').innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09Z" /></svg>
-                    Version v${versionText}
-                `;
-
-                const assets = data.assets || [];
-
-                // Match specific release assets
-                const winSetupAsset = assets.find(a => a.name.endsWith('.exe') && a.name.includes('Setup'));
-                const winPortableAsset = assets.find(a => a.name.endsWith('.exe') && a.name.includes('Portable'));
-                const latestYmlAsset = assets.find(a => a.name === 'latest.yml');
-                const blockmapAsset = assets.find(a => a.name.endsWith('.blockmap'));
-                const linuxAppImageAsset = assets.find(a => a.name.endsWith('.AppImage'));
-                const latestLinuxYmlAsset = assets.find(a => a.name === 'latest-linux.yml');
-
-                const zipUrl = data.zipball_url || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/archive/refs/tags/${tagName}.zip`;
-                const tarUrl = data.tarball_url || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/archive/refs/tags/${tagName}.tar.gz`;
-
-                function bindAsset(btnId, copyId, sizeId, asset, fallbackUrl) {
-                    const btn = document.getElementById(btnId);
-                    const copyBtn = document.getElementById(copyId);
-                    const sizeEl = document.getElementById(sizeId);
-                    const url = asset ? asset.browser_download_url : fallbackUrl;
-
-                    if (btn) btn.href = url;
-                    if (copyBtn) copyBtn.dataset.url = url;
-                    if (sizeEl && asset && asset.size) sizeEl.innerText = formatBytes(asset.size);
+                const res = await fetch('/updates/latest.yml');
+                if (res.ok) {
+                    const text = await res.text();
+                    const versionMatch = text.match(/version:\s*(.+)/);
+                    const pathMatch = text.match(/path:\s*(.+)/);
+                    
+                    if (versionMatch && versionMatch[1]) {
+                        const version = versionMatch[1].trim();
+                        document.getElementById('versionBadge').textContent = 'Version v' + version;
+                    }
+                    if (pathMatch && pathMatch[1]) {
+                        const exePath = pathMatch[1].trim();
+                        document.getElementById('downloadBtn').href = exePath;
+                    }
+                    return;
                 }
+            } catch (e) {}
 
-                bindAsset('btnWinSetup', 'copyWinSetup', 'sizeWinSetup', winSetupAsset, 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
-                bindAsset('btnWinPortable', 'copyWinPortable', 'sizeWinPortable', winPortableAsset, 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
-                bindAsset('btnLatestYml', 'copyLatestYml', 'sizeLatestYml', latestYmlAsset, 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
-                bindAsset('btnBlockmap', 'copyBlockmap', 'sizeBlockmap', blockmapAsset, 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
-                
-                bindAsset('btnLinuxAppImage', 'copyLinuxAppImage', 'sizeLinuxAppImage', linuxAppImageAsset, 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
-                bindAsset('btnLatestLinuxYml', 'copyLatestLinuxYml', 'sizeLatestLinuxYml', latestLinuxYmlAsset, 'https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
-
-                bindAsset('btnSourceZip', 'copySourceZip', null, null, zipUrl);
-                bindAsset('btnSourceTar', 'copySourceTar', null, null, tarUrl);
-
-            } catch (err) {
-                console.warn('[Download Portal] Could not fetch GitHub Releases metadata:', err);
-            }
+            try {
+                const ghRes = await fetch('https://api.github.com/repos/Tejaspadaki/EMS-V1-frontend-V1/releases/latest');
+                if (ghRes.ok) {
+                    const data = await ghRes.json();
+                    const tagName = data.tag_name || 'v1.16.0';
+                    document.getElementById('versionBadge').textContent = 'Version ' + tagName;
+                    const winAsset = (data.assets || []).find(a => a.name.endsWith('.exe'));
+                    if (winAsset && winAsset.browser_download_url) {
+                        document.getElementById('downloadBtn').href = winAsset.browser_download_url;
+                    }
+                }
+            } catch (e) {}
         }
-        fetchGitHubReleases();
+        initDownloadPortal();
     </script>
 </body>
 </html>
