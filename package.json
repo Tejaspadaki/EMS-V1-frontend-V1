@@ -19,10 +19,11 @@
     "electron:prepare-cache": "node scripts/prepare-build-cache.cjs",
     "electron:build": "npm run build:all",
     "electron:publish": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --linux --publish always",
-    "build:win": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --x64",
-    "build:linux": "node scripts/generate-icons.cjs && npm run build && electron-builder --linux",
-    "build:all": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --linux",
+    "build:win": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --x64 && node scripts/organize-dist.cjs",
+    "build:linux": "node scripts/generate-icons.cjs && npm run build && electron-builder --linux && node scripts/organize-dist.cjs",
+    "build:all": "node scripts/generate-icons.cjs && npm run electron:prepare-cache && npm run build && electron-builder --win --linux && node scripts/organize-dist.cjs",
     "verify": "node scripts/verify-exe.cjs",
+    "organize": "node scripts/organize-dist.cjs",
     "dist": "npm run build:all"
   },
   "dependencies": {

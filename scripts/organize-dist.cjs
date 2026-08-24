@@ -5,69 +5,81 @@ const distElectron = path.join(__dirname, '..', 'dist-electron');
 const winDir = path.join(distElectron, 'Windows');
 const linuxDir = path.join(distElectron, 'Linux');
 
-// Ensure base target subdirectories exist
-[winDir, linuxDir].forEach(dir => {
+// Backend public updates folder path
+const backendUpdatesDir = path.resolve(__dirname, '..', '..', 'EMS_Backend', 'backend', 'public', 'updates');
+const backendWinDir = path.join(backendUpdatesDir, 'Windows');
+const backendLinuxDir = path.join(backendUpdatesDir, 'Linux');
+
+// Ensure directories exist
+[distElectron, winDir, linuxDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
+
+if (fs.existsSync(backendUpdatesDir)) {
+  [backendUpdatesDir, backendWinDir, backendLinuxDir].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
+}
 
 function copyFile(src, dest) {
   if (fs.existsSync(src)) {
     const parent = path.dirname(dest);
     if (!fs.existsSync(parent)) fs.mkdirSync(parent, { recursive: true });
     fs.copyFileSync(src, dest);
-    console.log(` -> Copied ${path.basename(src)} -> ${path.relative(distElectron, dest)}`);
+    console.log(` -> Copied ${path.basename(src)} -> ${dest}`);
   }
 }
 
-console.log('[Dist Organizer] Organizing production installers into dist-electron/ directory structure...');
+console.log('====================================================');
+console.log('[Dist Organizer] Syncing production release artifacts...');
+console.log('====================================================');
 
-// Copy index.html download landing page into dist-electron root
+// 1. Sync public/updates/index.html portal page to dist-electron and backend
 const publicIndexHtml = path.join(__dirname, '..', 'public', 'updates', 'index.html');
 if (fs.existsSync(publicIndexHtml)) {
   copyFile(publicIndexHtml, path.join(distElectron, 'index.html'));
+  if (fs.existsSync(backendUpdatesDir)) {
+    copyFile(publicIndexHtml, path.join(backendUpdatesDir, 'index.html'));
+  }
 }
 
+// 2. Organize build outputs in dist-electron and sync metadata to backend
 if (fs.existsSync(distElectron)) {
   const files = fs.readdirSync(distElectron);
   files.forEach(file => {
     const fullPath = path.join(distElectron, file);
     if (fs.statSync(fullPath).isDirectory()) return;
 
-    // Windows Installers
-    if (file.includes('Setup') && file.endsWith('.exe')) {
-      copyFile(fullPath, path.join(winDir, 'Novynth-Workflow-Setup.exe'));
-      copyFile(fullPath, path.join(winDir, 'Novynth Workflow Setup.exe'));
-      copyFile(fullPath, path.join(winDir, 'Setup.exe'));
-      copyFile(fullPath, path.join(winDir, file));
-    } else if (file.includes('Portable') && file.endsWith('.exe')) {
-      copyFile(fullPath, path.join(winDir, 'Novynth-Workflow-Portable.exe'));
-      copyFile(fullPath, path.join(winDir, 'Novynth Workflow Portable.exe'));
-      copyFile(fullPath, path.join(winDir, 'Portable.exe'));
+    // Windows Build Artifacts & Metadata
+    if (file.endsWith('.exe')) {
       copyFile(fullPath, path.join(winDir, file));
     }
 
-    // Linux Installers
-    if (file.endsWith('.AppImage')) {
-      copyFile(fullPath, path.join(linuxDir, 'AppImage', file));
-      copyFile(fullPath, path.join(linuxDir, 'AppImage.AppImage'));
-      copyFile(fullPath, path.join(linuxDir, file));
-    } else if (file.endsWith('.deb')) {
-      copyFile(fullPath, path.join(linuxDir, 'DEB', file));
-      copyFile(fullPath, path.join(linuxDir, 'DEB.deb'));
-      copyFile(fullPath, path.join(linuxDir, file));
-    } else if (file.endsWith('.rpm')) {
-      copyFile(fullPath, path.join(linuxDir, 'RPM', file));
-      copyFile(fullPath, path.join(linuxDir, 'RPM.rpm'));
-      copyFile(fullPath, path.join(linuxDir, file));
-    }
-
-    // Auto-update YAML metadata files
     if (file === 'latest.yml') {
       copyFile(fullPath, path.join(winDir, 'latest.yml'));
-    } else if (file === 'latest-linux.yml') {
+      if (fs.existsSync(backendUpdatesDir)) {
+        copyFile(fullPath, path.join(backendUpdatesDir, 'latest.yml'));
+        copyFile(fullPath, path.join(backendWinDir, 'latest.yml'));
+      }
+    }
+
+    // Linux Build Artifacts & Metadata
+    if (file.endsWith('.AppImage')) {
+      copyFile(fullPath, path.join(linuxDir, file));
+    } else if (file.endsWith('.deb')) {
+      copyFile(fullPath, path.join(linuxDir, file));
+    }
+
+    if (file === 'latest-linux.yml') {
       copyFile(fullPath, path.join(linuxDir, 'latest-linux.yml'));
+      if (fs.existsSync(backendUpdatesDir)) {
+        copyFile(fullPath, path.join(backendUpdatesDir, 'latest-linux.yml'));
+        copyFile(fullPath, path.join(backendLinuxDir, 'latest-linux.yml'));
+      }
     }
   });
 }
 
-console.log('[Dist Organizer] Successfully organized build artifacts in dist-electron/!');
+console.log('====================================================');
+console.log('✨ Distribution artifacts successfully organized and synced!');
+console.log('====================================================');
