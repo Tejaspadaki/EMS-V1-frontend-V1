@@ -137,7 +137,6 @@ jobs:
     name: Deploy Web Application to cPanel via FTP
     needs: [build-windows-release, build-linux-release]
     runs-on: ubuntu-latest
-    if: ${{ secrets.FTP_SERVER != '' }}
 
     steps:
       - name: Checkout repository
@@ -155,6 +154,7 @@ jobs:
           npm run build
 
       - name: Deploy Web Application to cPanel via FTP
+        if: secrets.FTP_SERVER != ''
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.FTP_SERVER }}
