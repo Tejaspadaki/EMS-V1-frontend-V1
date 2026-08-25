@@ -172,6 +172,7 @@ jobs:
           port: ${{ secrets.FTP_PORT || 21 }}
           local-dir: ./dist/
           server-dir: /
+          state-name: .ftp-deploy-sync-state-frontend.json
           exclude: |
             **/.git*
             **/.git*/**

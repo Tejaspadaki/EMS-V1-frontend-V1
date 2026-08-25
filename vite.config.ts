@@ -8,6 +8,7 @@ export default defineConfig({
   build: {
     sourcemap: false,
     cssMinify: true,
-    minify: 'esbuild'
+    minify: 'esbuild',
+    assetsDir: 'static'
   }
 })
