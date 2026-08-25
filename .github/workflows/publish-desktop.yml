@@ -41,6 +41,7 @@ jobs:
 
       - name: Build Windows Installer (electron-builder)
         run: |
+          npm run electron:prepare-cache
           npx electron-builder --win --x64
           node scripts/organize-dist.cjs
         env:
