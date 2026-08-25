@@ -18,11 +18,14 @@ export interface LatestReleaseInfo {
 const GITHUB_OWNER = 'Tejaspadaki';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
 const DEFAULT_VERSION = '1.16.0';
-const RELEASES_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`;
+
+// Use the backend API to avoid GitHub's strict client-side rate limits
+const RELEASES_API_URL = `https://ems-backend.yuktiyantra.com/api/updates/latest`;
 export const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
 
-export const DIRECT_WINDOWS_DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/Novynth-Workflow-Setup-${DEFAULT_VERSION}.exe`;
-export const DIRECT_LINUX_DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/Novynth-Workflow-${DEFAULT_VERSION}.AppImage`;
+// Point to the backend redirect endpoints which dynamically resolve the latest asset URL
+export const DIRECT_WINDOWS_DOWNLOAD_URL = `https://ems-backend.yuktiyantra.com/updates/download/windows`;
+export const DIRECT_LINUX_DOWNLOAD_URL = `https://ems-backend.yuktiyantra.com/updates/download/linux`;
 
 export type OperatingSystem = 'windows' | 'linux' | 'other';
 
@@ -38,73 +41,54 @@ export function detectOS(): OperatingSystem {
 }
 
 /**
- * Fetch the latest GitHub Release metadata dynamically.
- * Resolves direct download links for Windows setup exe and Linux AppImage.
+ * Fetch the latest GitHub Release metadata dynamically via the backend.
  */
 export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
   try {
-    const response = await fetch(RELEASES_API_URL, {
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-      },
-    });
+    const response = await fetch(RELEASES_API_URL);
 
     if (!response.ok) {
-      if (response.status === 404) {
-        console.info('[GitHub Release] No GitHub Release published yet on GitHub repository.');
-      } else {
-        console.warn(`[GitHub Release] API returned status ${response.status}`);
-      }
+      console.warn(`[Update API] Backend returned status ${response.status}`);
       return {
         hasRelease: false,
         tagName: `v${DEFAULT_VERSION}`,
         version: DEFAULT_VERSION,
         htmlUrl: RELEASES_PAGE_URL,
-        windowsInstallerUrl: null,
-        linuxAppImageUrl: null,
+        windowsInstallerUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
+        linuxAppImageUrl: DIRECT_LINUX_DOWNLOAD_URL,
         assets: [],
       };
     }
 
     const data = await response.json();
-    const tagName = data.tag_name || `v${DEFAULT_VERSION}`;
-    const version = tagName.replace(/^v/, '');
-    const htmlUrl = data.html_url || RELEASES_PAGE_URL;
-    const releaseNotes = data.body || '';
+    
+    // The backend returns: { success: true, version: "1.16.0", windows: "url", linux: "url", releaseUrl: "url" }
+    if (!data.success) {
+      throw new Error("Backend reported failure fetching release");
+    }
 
-    const assets: ReleaseAsset[] = (data.assets || []).map((asset: any) => ({
-      name: asset.name,
-      browser_download_url: asset.browser_download_url,
-      size: asset.size,
-    }));
-
-    // Identify Windows Setup installer (.exe)
-    const winAsset = assets.find(
-      (a) => a.name.endsWith('.exe') && (a.name.includes('Setup') || a.name.includes('novynth') || a.name.includes('Employee'))
-    ) || assets.find((a) => a.name.endsWith('.exe'));
-
-    // Identify Linux AppImage (.AppImage)
-    const linuxAsset = assets.find((a) => a.name.endsWith('.AppImage'));
+    const version = data.version || DEFAULT_VERSION;
+    const tagName = `v${version}`;
 
     return {
-      hasRelease: !!(winAsset || linuxAsset),
+      hasRelease: true,
       tagName,
       version,
-      releaseNotes,
-      htmlUrl,
-      windowsInstallerUrl: winAsset ? winAsset.browser_download_url : null,
-      linuxAppImageUrl: linuxAsset ? linuxAsset.browser_download_url : null,
-      assets,
+      releaseNotes: 'Update available via EMS Backend',
+      htmlUrl: data.releaseUrl || RELEASES_PAGE_URL,
+      windowsInstallerUrl: data.windows || DIRECT_WINDOWS_DOWNLOAD_URL,
+      linuxAppImageUrl: data.linux || DIRECT_LINUX_DOWNLOAD_URL,
+      assets: [], // We don't need raw assets anymore since backend handles it
     };
   } catch (error) {
-    console.warn('[GitHub Release] No published release found yet on GitHub Releases:', error);
+    console.warn('[Update API] Failed to fetch release metadata from backend:', error);
     return {
       hasRelease: false,
       tagName: `v${DEFAULT_VERSION}`,
       version: DEFAULT_VERSION,
       htmlUrl: RELEASES_PAGE_URL,
-      windowsInstallerUrl: null,
-      linuxAppImageUrl: null,
+      windowsInstallerUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
+      linuxAppImageUrl: DIRECT_LINUX_DOWNLOAD_URL,
       assets: [],
     };
   }
