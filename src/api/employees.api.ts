@@ -23,6 +23,7 @@ export interface EmployeeDetails {
   phone?: string;
   department: string;
   role: string;
+  roles?: string[];
   roleCardGenerated: boolean;
   roleCardQrCodeUrl?: string;
   contributionScore: number;

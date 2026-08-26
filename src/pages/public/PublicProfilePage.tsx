@@ -53,8 +53,12 @@ export const PublicProfilePage: React.FC = () => {
         <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{profile.name}</h1>
         <p className="text-[var(--color-text-secondary)] text-sm mb-4">ID: {profile.id.toUpperCase()}</p>
         
-        <div className="inline-block px-4 py-1.5 bg-indigo-50 border border-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold rounded-full uppercase tracking-widest text-sm mb-6">
-          {profile.role}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+          {(profile.roles && profile.roles.length > 0 ? profile.roles : [profile.role]).map((r, idx) => (
+            <div key={idx} className="inline-block px-4 py-1.5 bg-indigo-50 border border-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold rounded-full uppercase tracking-widest text-sm">
+              {r}
+            </div>
+          ))}
         </div>
         
         <div className="w-full bg-gray-50 p-4 rounded-lg border border-gray-100 flex items-center justify-center gap-2">
