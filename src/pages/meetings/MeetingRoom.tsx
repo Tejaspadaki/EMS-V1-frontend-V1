@@ -8,7 +8,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { uploadRecording } from '../../api/meetings.api';
 import { toast } from '../../utils/toast';
-import { getInitials } from '../../utils/initials';
+import { Avatar } from '../../components/ui/Avatar';
 
 const ICE_SERVERS = {
   iceServers: [
@@ -542,9 +542,7 @@ export const MeetingRoom: React.FC = () => {
 
               {/* Name label */}
               <div className="absolute bottom-5 left-5 flex items-center gap-2.5 transition-all duration-300">
-                <div className={`w-9 h-9 rounded-2xl text-xs font-bold flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${getAvatarGradient(spotlightedItem.label)}`}>
-                  {getInitials(spotlightedItem.label)}
-                </div>
+                <Avatar name={spotlightedItem.label} avatarUrl={spotlightedItem.user?.avatarUrl} className="w-9 h-9 text-xs rounded-2xl bg-gradient-to-br ring-2 ring-white/10" />
                 <div>
                   <p className="text-sm font-bold text-white leading-tight">{spotlightedItem.label}</p>
                   {joinedMember && spotlightedItem.id !== 'local' && spotlightedItem.label === joinedMember && (
@@ -613,9 +611,7 @@ export const MeetingRoom: React.FC = () => {
 
                 {/* Name tag */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-                  <div className={`w-6 h-6 rounded-xl text-[9px] font-bold flex items-center justify-center text-white bg-gradient-to-br ${getAvatarGradient(item.label)}`}>
-                    {getInitials(item.label)}
-                  </div>
+                  <Avatar name={item.label} avatarUrl={item.user?.avatarUrl} className="w-6 h-6 text-[9px] rounded-xl bg-gradient-to-br ring-1 ring-white/10" />
                   <span className="text-[11px] font-bold text-white/90 max-w-[80px] truncate">{item.label}</span>
                   {item.isMuted && <MicOff size={11} className="text-rose-400 shrink-0" />}
                 </div>
@@ -689,9 +685,7 @@ export const MeetingRoom: React.FC = () => {
                     <div key={i} className={`flex flex-col max-w-[88%] gap-1 ${isMe ? 'self-end items-end' : 'self-start items-start'}`}>
                       {!isMe && (
                         <div className="flex items-center gap-1.5 px-1">
-                          <div className={`w-5 h-5 rounded-lg text-[8px] font-bold flex items-center justify-center text-white bg-gradient-to-br ${getAvatarGradient(msg.senderName)}`}>
-                            {getInitials(msg.senderName)}
-                          </div>
+                          <Avatar name={msg.senderName} className="w-5 h-5 text-[8px] rounded-lg" />
                           <span className="text-[10px] text-white/40 font-medium">{msg.senderName}</span>
                         </div>
                       )}

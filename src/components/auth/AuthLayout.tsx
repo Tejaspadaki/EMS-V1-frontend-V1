@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Shield, Users, Zap, CheckCircle2 } from 'lucide-react';
+import { Building2, Shield, Users, Zap, CheckCircle2, Hexagon } from 'lucide-react';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -50,7 +50,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         {/* Top Brand Header */}
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Novynth Logo" className="w-11 h-11 rounded-xl object-contain bg-white/10 p-1 backdrop-blur-sm border border-white/10" />
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shrink-0 border border-white/20">
+              <Hexagon size={24} className="text-white fill-white/20" />
+            </div>
             <div>
               <span className="text-white font-bold text-xl tracking-tight">Novynth Workflow</span>
               <span className="ml-2.5 text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/10">

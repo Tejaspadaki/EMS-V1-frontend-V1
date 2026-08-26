@@ -7,6 +7,7 @@ import { CommandPalette } from '../ui/CommandPalette';
 import { AppUpdaterModal } from '../common/AppUpdaterModal';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { getInitials } from '../../utils/initials';
+import { Avatar } from '../ui/Avatar';
 
 export interface TopbarProps {
   sidebarCollapsed: boolean;
@@ -188,9 +189,13 @@ export const Topbar: React.FC<TopbarProps> = ({ sidebarCollapsed, onToggleSideba
                 className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 aria-label="User menu"
               >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-semibold text-sm shadow-xs">
-                  {getInitials(user?.name, role?.substring(0, 2).toUpperCase() || 'US')}
-                </div>
+                <Avatar 
+                  name={user?.name} 
+                  avatarUrl={user?.avatarUrl} 
+                  size="sm" 
+                  className="rounded-lg shadow-xs" 
+                  fallbackRole={role?.substring(0, 2).toUpperCase() || 'US'} 
+                />
               </button>
 
               {showUserMenu && (

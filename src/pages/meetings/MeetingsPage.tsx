@@ -11,7 +11,7 @@ import { getChannels, createMessage } from '../../api/messaging.api';
 import { getAllUsers } from '../../api/admin.api';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from '../../utils/toast';
-import { getInitials } from '../../utils/initials';
+import { Avatar } from '../../components/ui/Avatar';
 
 const getStatusGradient = (status: string, myStatus?: string) => {
   if (status === 'cancelled') return 'from-rose-500 to-red-600';
@@ -404,11 +404,11 @@ export const MeetingsPage: React.FC = () => {
                         return (
                           <div
                             key={p.userId}
-                            className={`w-7 h-7 rounded-xl border-2 border-white flex items-center justify-center text-[9px] font-extrabold text-white bg-gradient-to-br ${getAvatarColor(pName)} ${idx > 0 ? '-ml-2' : ''} shadow-2xs`}
-                            title={pName}
+                            className={`relative ${idx > 0 ? '-ml-2' : ''} ring-2 ring-white rounded-full`}
                             style={{ zIndex: meeting.participants.length - idx }}
+                            title={pName}
                           >
-                            {getInitials(pName)}
+                            <Avatar name={pName} avatarUrl={p.user?.avatarUrl} size="sm" />
                           </div>
                         );
                       })}
@@ -667,9 +667,7 @@ export const MeetingsPage: React.FC = () => {
                       }
                     }}
                   />
-                  <div className={`w-8 h-8 rounded-xl text-[10px] font-bold flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${getAvatarColor(u.name)}`}>
-                    {getInitials(u.name)}
-                  </div>
+                  <Avatar name={u.name} avatarUrl={u.avatarUrl} size="sm" />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-800 truncate">{u.name}</p>
                     <p className="text-xs text-slate-400 truncate">{u.email}</p>

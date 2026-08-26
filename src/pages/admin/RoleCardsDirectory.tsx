@@ -143,9 +143,13 @@ export const RoleCardsDirectory: React.FC = () => {
                 <p className="text-xs font-semibold text-slate-500 truncate mb-4">{user.email}</p>
 
                 <div className="flex items-center justify-center gap-2 flex-wrap">
-                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-bold uppercase tracking-wider rounded-lg border border-indigo-100">
-                    {user.role}
-                  </span>
+                  <div className="flex gap-1 flex-wrap justify-center">
+                    {(user.roles && user.roles.length > 0 ? user.roles : [user.role]).map((r: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-bold uppercase tracking-wider rounded-lg border border-indigo-100">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
                   <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider rounded-lg border border-slate-200 truncate max-w-[120px]" title={user.department}>
                     {user.department || 'N/A'}
                   </span>

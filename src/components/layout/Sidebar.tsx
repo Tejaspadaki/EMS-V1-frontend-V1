@@ -7,7 +7,7 @@ import {
   ClipboardList, Camera, MessageCircle, FolderKanban, 
   FileText, PlusCircle, Shield, BarChart3, UserCheck, 
   GitPullRequest, Building2, Calendar, UserMinus, BookOpen, Clock,
-  ChevronDown, ChevronRight, Award, DollarSign
+  ChevronDown, ChevronRight, Award, DollarSign, Hexagon
 } from 'lucide-react';
 
 export interface SidebarProps {
@@ -173,7 +173,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     <aside className={`novynth-sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="h-16 flex items-center justify-center border-b border-white/10 shrink-0 px-4">
         <div className="flex items-center gap-3 w-full">
-            <img src="/logo.png" alt="Novynth Logo" className="w-8 h-8 rounded-xl object-contain shrink-0 shadow-md bg-white/10 p-0.5" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shrink-0 border border-white/10">
+            <Hexagon size={20} className="text-white fill-white/20" />
+          </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <h1 className="text-white font-extrabold text-base tracking-tight leading-none">Novynth Workflow</h1>

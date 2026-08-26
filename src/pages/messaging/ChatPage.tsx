@@ -10,6 +10,7 @@ import { Modal } from '../../components/ui/Modal';
 import EmojiPicker from 'emoji-picker-react';
 import { toast } from '../../utils/toast';
 import { getInitials } from '../../utils/initials';
+import { Avatar } from '../../components/ui/Avatar';
 import { MediaLightboxModal } from '../../components/common/MediaLightboxModal';
 
 const playSendSound = () => {
@@ -641,9 +642,7 @@ export const ChatPage: React.FC = () => {
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         {channel.type === 'Direct' ? (
-                          <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${getAvatarColor(channel.name)} flex items-center justify-center text-white text-xs font-black shadow-xs shrink-0 ring-1 ring-white/10`}>
-                            {getInitials(channel.name)}
-                          </div>
+                          <Avatar name={channel.name} avatarUrl={allUsersList.find(u => u.name === channel.name)?.avatarUrl} size="sm" />
                         ) : (
                           <span className={`p-2 rounded-xl shrink-0 ${isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-900 text-slate-400'}`}>
                             {renderChannelIcon(channel.type)}
@@ -736,9 +735,7 @@ export const ChatPage: React.FC = () => {
             </button>
             {activeChannelData && (
               activeChannelData.type === 'Direct' ? (
-                <div className={`w-10 h-10 rounded-2xl text-xs font-black text-white flex items-center justify-center shadow-xs shrink-0 bg-gradient-to-br ${getAvatarColor(activeChannelName)} ring-2 ring-indigo-500/20`}>
-                  {getInitials(activeChannelName)}
-                </div>
+                <Avatar name={activeChannelName} avatarUrl={allUsersList.find(u => u.name === activeChannelName)?.avatarUrl} size="md" />
               ) : (
                 <div className="w-10 h-10 rounded-2xl bg-slate-900 text-indigo-400 flex items-center justify-center shrink-0 border border-slate-800 shadow-xs">
                   {renderChannelIcon(activeChannelData.type)}
@@ -821,9 +818,11 @@ export const ChatPage: React.FC = () => {
                 {/* Sender name + avatar */}
                 {showName && !msg.isSelf && (
                   <div className="flex items-center gap-2 mb-1.5 ml-1">
-                    <div className={`w-7 h-7 rounded-xl text-[10px] font-black flex items-center justify-center text-white bg-gradient-to-br ${getAvatarColor(msg.senderName || '')} shadow-2xs`}>
-                      {getInitials(msg.senderName)}
-                    </div>
+                    <Avatar 
+                      name={msg.senderName} 
+                      avatarUrl={allUsersList.find(u => u.name === msg.senderName)?.avatarUrl} 
+                      size="sm" 
+                    />
                     <span className="text-xs font-bold text-slate-700">{msg.senderName}</span>
                   </div>
                 )}
@@ -831,9 +830,11 @@ export const ChatPage: React.FC = () => {
                 <div className={`flex items-end gap-2.5 ${msg.isSelf ? 'flex-row-reverse' : 'flex-row'}`}>
                   {/* Self avatar */}
                   {showName && msg.isSelf && (
-                    <div className={`w-7 h-7 rounded-xl text-[10px] font-black flex items-center justify-center text-white shrink-0 bg-gradient-to-br ${getAvatarColor(user?.name || '')} shadow-2xs`}>
-                      {getInitials(user?.name) || 'ME'}
-                    </div>
+                    <Avatar 
+                      name={user?.name || 'ME'} 
+                      avatarUrl={user?.avatarUrl} 
+                      size="sm" 
+                    />
                   )}
                   {!showName && <div className="w-7 shrink-0" />}
 

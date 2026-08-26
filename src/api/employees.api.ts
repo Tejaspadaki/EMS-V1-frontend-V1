@@ -24,6 +24,7 @@ export interface EmployeeDetails {
   department: string;
   role: string;
   roles?: string[];
+  avatarUrl?: string;
   roleCardGenerated: boolean;
   roleCardQrCodeUrl?: string;
   contributionScore: number;

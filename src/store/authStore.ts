@@ -28,6 +28,7 @@ interface User {
   email: string;
   role: UserRole;
   department?: string;
+  avatarUrl?: string;
   mustChangePassword?: boolean;
 }
 

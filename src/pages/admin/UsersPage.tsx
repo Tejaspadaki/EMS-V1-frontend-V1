@@ -161,10 +161,14 @@ export const UsersPage: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
-                          <Briefcase size={12} />
-                          {user.role}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {(user.roles && user.roles.length > 0 ? user.roles : [user.role]).map((r: string, idx: number) => (
+                            <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
+                              <Briefcase size={12} />
+                              {r}
+                            </span>
+                          ))}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <span className="inline-flex items-center gap-1.5 text-xs text-slate-600 font-medium">
@@ -215,9 +219,13 @@ export const UsersPage: React.FC = () => {
                     <p className="text-xs text-slate-400 font-mono">#{user.empId}</p>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-bold">
-                  {user.role}
-                </span>
+                <div className="flex flex-wrap gap-1 justify-end">
+                  {(user.roles && user.roles.length > 0 ? user.roles : [user.role]).map((r: string, idx: number) => (
+                    <span key={idx} className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-bold">
+                      {r}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="text-xs space-y-1 text-slate-600 border-t border-slate-100 pt-2">
                 <p><span className="text-slate-400">Email:</span> {user.email}</p>

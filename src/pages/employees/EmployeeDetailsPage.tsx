@@ -53,7 +53,8 @@ export const EmployeeDetailsPage: React.FC = () => {
     bank_name: '',
     account_number: '',
     ifsc_code: '',
-    skills: ''
+    skills: '',
+    avatarUrl: ''
   });
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
@@ -75,7 +76,8 @@ export const EmployeeDetailsPage: React.FC = () => {
           bank_name: data.bank_name || '',
           account_number: data.account_number || '',
           ifsc_code: data.ifsc_code || '',
-          skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || '')
+          skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || ''),
+          avatarUrl: data.avatarUrl || ''
         });
       }
     } catch (err) {
@@ -93,6 +95,10 @@ export const EmployeeDetailsPage: React.FC = () => {
         ...profileForm,
         skills: skillsArray
       });
+      // Update global auth store if avatar was changed
+      if (profileForm.avatarUrl && profileForm.avatarUrl !== user?.avatarUrl) {
+        useAuthStore.getState().updateUser({ avatarUrl: profileForm.avatarUrl });
+      }
       setProfileSuccess('Profile settings updated successfully!');
       setTimeout(() => setProfileSuccess(''), 4000);
       loadData();
@@ -101,6 +107,31 @@ export const EmployeeDetailsPage: React.FC = () => {
       alert(err.response?.data?.message || 'Failed to update profile settings');
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    setUploadingImage(true);
+    try {
+      const api = (await import('../../api/axios')).default;
+      const res = await api.post('/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data?.success && res.data?.data?.url) {
+        setProfileForm({ ...profileForm, avatarUrl: res.data.data.url });
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -675,6 +706,28 @@ export const EmployeeDetailsPage: React.FC = () => {
                   <User size={18} className="text-indigo-600" />
                   Personal & Contact Information
                 </h4>
+
+                <div className="flex items-center gap-6 mb-6">
+                  <div className="relative group">
+                    <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                      {profileForm.avatarUrl ? (
+                        <img src={profileForm.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-bold text-slate-400">{getInitials(employee.name)}</span>
+                      )}
+                    </div>
+                    <label className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer rounded-full transition-opacity">
+                      <Camera size={24} />
+                      <span className="text-[10px] font-bold mt-1">Change</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImage} />
+                    </label>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900">Profile Picture</h5>
+                    <p className="text-xs text-slate-500 max-w-sm mt-1">Upload a professional photo to be displayed across the workspace. JPG, PNG (Max 5MB).</p>
+                    {uploadingImage && <span className="text-xs text-indigo-600 font-bold mt-2 inline-block animate-pulse">Uploading...</span>}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
