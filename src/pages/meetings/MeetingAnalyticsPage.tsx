@@ -81,17 +81,21 @@ export const MeetingAnalyticsPage: React.FC = () => {
                 <th className="p-4 font-semibold">Meeting Title</th>
                 <th className="p-4 font-semibold">Organizer</th>
                 <th className="p-4 font-semibold">Date</th>
+                <th className="p-4 font-semibold">Size</th>
+                <th className="p-4 font-semibold">Duration</th>
                 <th className="p-4 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700">
               {data.recordings.length === 0 ? (
-                <tr><td colSpan={4} className="p-6 text-center text-slate-500">No recordings found.</td></tr>
+                <tr><td colSpan={6} className="p-6 text-center text-slate-500">No recordings found.</td></tr>
               ) : data.recordings.map((rec: any) => (
                 <tr key={rec.id} className="hover:bg-slate-700/50 transition">
                   <td className="p-4">{rec.meeting_title || 'Instant Meeting'}</td>
                   <td className="p-4">{rec.organizer_name}</td>
                   <td className="p-4">{new Date(rec.created_at).toLocaleDateString()}</td>
+                  <td className="p-4 text-slate-300">{rec.size_bytes ? (rec.size_bytes / (1024 * 1024)).toFixed(2) + ' MB' : '-'}</td>
+                  <td className="p-4 text-slate-300">{rec.duration_secs ? Math.round(rec.duration_secs / 60) + ' min' : '-'}</td>
                   <td className="p-4 flex gap-2">
                     <a 
                       href={(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000') + rec.recording_url} 

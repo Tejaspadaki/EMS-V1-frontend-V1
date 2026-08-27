@@ -7,7 +7,7 @@ import {
   ClipboardList, Camera, MessageCircle, FolderKanban, 
   FileText, PlusCircle, Shield, BarChart3, UserCheck, 
   GitPullRequest, Building2, Calendar, UserMinus, BookOpen, Clock,
-  ChevronDown, ChevronRight, Award, DollarSign, Hexagon
+  ChevronDown, ChevronRight, Award, DollarSign, Hexagon, Video
 } from 'lucide-react';
 
 export interface SidebarProps {
@@ -95,16 +95,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         { label: 'Quotations', path: '/quotations', icon: <FileText size={18} />, roles: ['Super Admin', 'CEO', 'CTO'] },
       ],
     },
-    {
-      title: 'CRM',
-      items: [
-        { label: 'Customer Dashboard', path: '/crm', icon: <Users size={18} />, roles: ['Super Admin', 'CEO', 'CTO'] },
-      ],
-    },
+    // {
+    //   title: 'CRM',
+    //   items: [
+    //     { label: 'Customer Dashboard', path: '/crm', icon: <Users size={18} />, roles: ['Super Admin', 'CEO', 'CTO'] },
+    //   ],
+    // },
     {
       title: 'Communication',
       items: [
         { label: 'Messages', path: '/messages', icon: <MessageCircle size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
+        { label: 'Meetings', path: '/meetings', icon: <Video size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
       ],
     },
     {
@@ -119,8 +120,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
       items: [
         { label: 'My Profile', path: '/profile', icon: <UserCheck size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'My Role Card', path: `/employees/${user?.id}`, icon: <UserCheck size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
-        { label: 'My Payslips', path: '/payroll/my-payslips', icon: <FileText size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
-        { label: 'My Claims', path: '/claims', icon: <FileText size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
+        // { label: 'My Payslips', path: '/payroll/my-payslips', icon: <FileText size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
+        // { label: 'My Claims', path: '/claims', icon: <FileText size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'Attendance Fix', path: '/regularization', icon: <Clock size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'My Performance', path: '/performance/my-reviews', icon: <UserCheck size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
         { label: 'Training Center', path: '/training', icon: <BookOpen size={18} />, roles: ['Super Admin', 'HR', 'Dept Head', 'Team Lead', 'Employee', 'Intern', 'CEO', 'CTO'] },
@@ -133,12 +134,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         { label: 'HR Dashboard', path: '/hr/dashboard', icon: <BarChart3 size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Performance Admin', path: '/hr/performance', icon: <Award size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
         { label: 'Regularization Queue', path: '/hr/regularization-queue', icon: <Clock size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
-        { label: 'Claims Queue', path: '/hr/claims-queue', icon: <DollarSign size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
-        { label: 'Payroll Admin', path: '/hr/payroll', icon: <FileText size={18} />, roles: ['Super Admin', 'HR'] },
-        { label: 'Exit Management', path: '/hr/exits', icon: <UserMinus size={18} />, roles: ['Super Admin', 'HR'] },
+        // { label: 'Claims Queue', path: '/hr/claims-queue', icon: <DollarSign size={18} />, roles: ['Super Admin', 'HR', 'CEO', 'CTO', 'Dept Head', 'Team Lead'] },
+        // { label: 'Payroll Admin', path: '/hr/payroll', icon: <FileText size={18} />, roles: ['Super Admin', 'HR'] },
+        // { label: 'Exit Management', path: '/hr/exits', icon: <UserMinus size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Onboard Employee', path: '/hr/onboard', icon: <UserPlus size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Onboarding Dashboard', path: '/hr/onboarding-dashboard', icon: <ClipboardList size={18} />, roles: ['Super Admin', 'HR'], badge: pendingRemindersCount },
-        { label: 'Recruitment (ATS)', path: '/hr/ats', icon: <Users size={18} />, roles: ['Super Admin', 'HR', 'CEO'] },
+        // { label: 'Recruitment (ATS)', path: '/hr/ats', icon: <Users size={18} />, roles: ['Super Admin', 'HR', 'CEO'] },
         { label: 'Enroll Face', path: '/hr/enroll-face', icon: <Camera size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Face Approvals', path: '/hr/face-approval', icon: <UserCheck size={18} />, roles: ['Super Admin', 'HR'] },
         { label: 'Attendance Audit', path: '/hr/attendance-audit', icon: <Shield size={18} />, roles: ['Super Admin', 'HR'] },

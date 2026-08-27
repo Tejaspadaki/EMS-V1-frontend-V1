@@ -617,6 +617,8 @@ export const LiveKitMeetingRoom: React.FC<{ roomId?: string }> = ({ roomId: prop
       mediaRecorderRef.current = mediaRecorder;
       recordedChunksRef.current = [];
 
+      const startTime = Date.now();
+      
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           recordedChunksRef.current.push(e.data);
@@ -624,12 +626,14 @@ export const LiveKitMeetingRoom: React.FC<{ roomId?: string }> = ({ roomId: prop
       };
 
       mediaRecorder.onstop = async () => {
+        const durationSecs = Math.round((Date.now() - startTime) / 1000);
         const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
         stream.getTracks().forEach(t => t.stop());
         
         setIsUploading(true);
         const formData = new FormData();
         formData.append('file', blob, `meeting-${roomId}-${Date.now()}.webm`);
+        formData.append('durationSecs', String(durationSecs));
 
         try {
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
