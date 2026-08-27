@@ -214,7 +214,8 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
                     {detectedOS === 'windows' && winUrl && (
                       <a
                         href={winUrl}
-                        target="_blank"
+                        download
+                        onClick={handleClose}
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                       >
@@ -226,7 +227,8 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
                     {detectedOS === 'linux' && linuxUrl && (
                       <a
                         href={linuxUrl}
-                        target="_blank"
+                        download
+                        onClick={handleClose}
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
                       >
@@ -311,7 +313,8 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
                   winUrl ? (
                     <a
                       href={winUrl}
-                      target="_blank"
+                      download
+                      onClick={handleClose}
                       rel="noopener noreferrer"
                       className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-indigo-300 bg-white hover:bg-indigo-50/40 rounded-xl transition-all group"
                     >
@@ -341,7 +344,8 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
                   linuxUrl ? (
                     <a
                       href={linuxUrl}
-                      target="_blank"
+                      download
+                      onClick={handleClose}
                       rel="noopener noreferrer"
                       className="flex items-center justify-between p-3.5 border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 rounded-xl transition-all group"
                     >
