@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Info, Download, Sparkles, Monitor, Terminal, ExternalLink, AlertTriangle } from 'lucide-react';
+import { X, Info, Download, Sparkles, Monitor, Terminal, ExternalLink, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { UpdaterStatusData, UpdaterProgressData } from '../../electron-api';
-import { fetchLatestRelease, detectOS, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
+import { fetchLatestRelease, detectOS, CURRENT_VERSION, getDirectWindowsDownloadUrl, getDirectLinuxDownloadUrl, type LatestReleaseInfo, type OperatingSystem } from '../../utils/githubRelease';
 
 interface AppUpdaterModalProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
   isOpen, 
   onClose,
   initialStatus = 'idle',
-  initialVersion = '1.7.0'
+  initialVersion = CURRENT_VERSION
 }) => {
   const [currentVersion, setCurrentVersion] = useState<string>(initialVersion);
   const [status, setStatus] = useState<'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'>(initialStatus);
@@ -81,12 +81,12 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
 
       const removeProgressListener = window.electronAPI.onUpdaterProgress((data: UpdaterProgressData) => {
         setStatus('downloading');
-        setProgress(data.percent || 0);
+        setProgress(Math.round(data.percent || 0));
       });
 
       return () => {
-        if (typeof removeStatusListener === 'function') removeStatusListener();
-        if (typeof removeProgressListener === 'function') removeProgressListener();
+        if (removeStatusListener) removeStatusListener();
+        if (removeProgressListener) removeProgressListener();
       };
     }
   }, [isOpen, isElectron]);
@@ -107,11 +107,11 @@ export const AppUpdaterModal: React.FC<AppUpdaterModalProps> = ({
     }
   };
 
-  const winUrl = releaseInfo?.windowsInstallerUrl;
-  const linuxUrl = releaseInfo?.linuxAppImageUrl;
+  const displayVersion = releaseInfo?.version || targetVersion || CURRENT_VERSION;
+  const winUrl = releaseInfo?.windowsInstallerUrl || getDirectWindowsDownloadUrl(displayVersion);
+  const linuxUrl = releaseInfo?.linuxAppImageUrl || getDirectLinuxDownloadUrl(displayVersion);
   const releasePageUrl = releaseInfo?.htmlUrl || `https://github.com/Tejaspadaki/EMS-V1-frontend-V1/releases`;
-  const displayVersion = releaseInfo?.version || targetVersion;
-  const hasReleaseAsset = releaseInfo?.hasRelease && (detectedOS === 'linux' ? !!linuxUrl : !!winUrl);
+  const hasReleaseAsset = true;
 
   if (!isOpen) return null;
 

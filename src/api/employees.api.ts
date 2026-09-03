@@ -25,6 +25,9 @@ export interface EmployeeDetails {
   role: string;
   roles?: string[];
   avatarUrl?: string;
+  isLocked?: boolean;
+  lockedAt?: string | null;
+  failedLoginAttempts?: number;
   roleCardGenerated: boolean;
   roleCardQrCodeUrl?: string;
   contributionScore: number;
@@ -35,6 +38,16 @@ export interface EmployeeDetails {
 export const getEmployeeDetails = async (id: string) => {
   const res = await api.get(`/role-cards/${id}`);
   return res.data.data;
+};
+
+export const unlockEmployeeAccount = async (userId: string) => {
+  const res = await api.post(`/admin/users/${userId}/unlock`);
+  return res.data;
+};
+
+export const lockEmployeeAccount = async (userId: string, reason?: string) => {
+  const res = await api.post(`/admin/users/${userId}/lock`, { reason });
+  return res.data;
 };
 
 export const generateRoleCard = async (id: string) => {

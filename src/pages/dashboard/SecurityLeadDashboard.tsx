@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getSecurityDashboardData } from '../../api/dashboard.api';
+import { unlockUser } from '../../api/admin.api';
 import { KPICard } from '../../components/dashboard/KPICard';
-import { ShieldCheck, Lock, AlertTriangle, ShieldAlert, Key, Terminal, ArrowRight, CheckCircle2, Shield, UserX, Activity } from 'lucide-react';
+import { ShieldCheck, Lock, AlertTriangle, ShieldAlert, Key, Terminal, ArrowRight, CheckCircle2, Shield, UserX, Activity, Unlock } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../utils/toast';
 
@@ -9,6 +10,7 @@ export const SecurityLeadDashboard: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [lockedList, setLockedList] = useState<any[]>([]);
+  const [unlockingId, setUnlockingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,9 +27,21 @@ export const SecurityLeadDashboard: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleUnlockAccount = (userId: number, email: string) => {
-    setLockedList(prev => prev.filter(u => u.id !== userId));
-    toast.success(`Account unlocked & reset: ${email}`);
+  const handleUnlockAccount = async (userId: number, email: string) => {
+    try {
+      setUnlockingId(userId);
+      const res = await unlockUser(userId.toString());
+      if (res.success) {
+        setLockedList(prev => prev.filter(u => u.id !== userId));
+        toast.success(`Account unlocked & reset: ${email}`);
+      } else {
+        toast.error(res.message || 'Failed to unlock account');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to unlock account');
+    } finally {
+      setUnlockingId(null);
+    }
   };
 
   if (loading) {
@@ -104,8 +118,19 @@ export const SecurityLeadDashboard: React.FC = () => {
                       <h4 className="font-bold text-slate-900">{user.name} ({user.email})</h4>
                       <p className="text-slate-400 text-[10px]">Locked: {new Date(user.locked_at || Date.now()).toLocaleTimeString()}</p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => handleUnlockAccount(user.id, user.email)}>
-                      Unlock & Notify
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={unlockingId === user.id}
+                      onClick={() => handleUnlockAccount(user.id, user.email)}
+                      className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-bold"
+                    >
+                      {unlockingId === user.id ? (
+                        <div className="w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mr-1" />
+                      ) : (
+                        <Unlock size={13} className="mr-1 text-emerald-600" />
+                      )}
+                      Unlock & Reset
                     </Button>
                   </div>
                 ))

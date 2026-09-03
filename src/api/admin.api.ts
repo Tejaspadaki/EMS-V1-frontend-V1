@@ -57,3 +57,19 @@ export const bulkGenerateRoleCards = async () => {
   const response = await api.post('/admin/employees/bulk-generate');
   return response.data;
 };
+
+export const unlockUser = async (userId: string) => {
+  const response = await api.post(`/admin/users/${userId}/unlock`);
+  return response.data;
+};
+
+export const lockUser = async (userId: string, reason?: string) => {
+  const response = await api.post(`/admin/users/${userId}/lock`, { reason });
+  return response.data;
+};
+
+export const getLockedUsers = async () => {
+  const response = await api.get('/admin/locked-users');
+  return Array.isArray(response.data?.data) ? response.data.data : Array.isArray(response.data) ? response.data : [];
+};
+

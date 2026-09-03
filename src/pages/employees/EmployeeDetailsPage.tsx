@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { getEmployeeDetails, generateRoleCard, regenerateRoleCard, exportRoleCardPDF, type EmployeeDetails } from '../../api/employees.api';
+import { getEmployeeDetails, generateRoleCard, regenerateRoleCard, exportRoleCardPDF, unlockEmployeeAccount, lockEmployeeAccount, type EmployeeDetails } from '../../api/employees.api';
 import { getInitials } from '../../utils/initials';
 import { ContributionGauge } from '../../components/analytics/ContributionGauge';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
-import { Download, Fingerprint, Shield, Clock, ShieldAlert, Camera, LayoutDashboard, Settings as SettingsIcon, Mail, Briefcase, MapPin, Phone, AlertTriangle, Calendar, Star, TrendingUp, Award, User, PhoneCall, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
+import { Download, Fingerprint, Shield, Clock, ShieldAlert, Camera, LayoutDashboard, Settings as SettingsIcon, Mail, Briefcase, MapPin, Phone, AlertTriangle, Calendar, Star, TrendingUp, Award, User, PhoneCall, CreditCard, Building2, CheckCircle2, Lock, Unlock } from 'lucide-react';
 import { useFaceApi } from '../../hooks/useFaceApi';
 import { enrollFace } from '../../api/attendance.api';
 import { performanceApi } from '../../api/performance.api';
 import { getMyProfile, updateMyProfile } from '../../api/profile.api';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
+import { toast } from '../../utils/toast';
 
 export const EmployeeDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -274,6 +275,44 @@ export const EmployeeDetailsPage: React.FC = () => {
     }
   };
 
+  const [unlockLoading, setUnlockLoading] = useState(false);
+
+  const handleUnlockAccount = async () => {
+    if (!employee) return;
+    try {
+      setUnlockLoading(true);
+      const res = await unlockEmployeeAccount(employee.id);
+      if (res.success) {
+        toast.success(`Account unlocked: ${employee.name}`);
+        setEmployee(prev => prev ? { ...prev, isLocked: false, failedLoginAttempts: 0, lockedAt: null } : null);
+      } else {
+        toast.error(res.message || 'Failed to unlock account');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to unlock account');
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
+
+  const handleLockAccount = async () => {
+    if (!employee) return;
+    try {
+      setUnlockLoading(true);
+      const res = await lockEmployeeAccount(employee.id, 'Administrative Lock');
+      if (res.success) {
+        toast.success(`Account locked: ${employee.name}`);
+        setEmployee(prev => prev ? { ...prev, isLocked: true, lockedAt: new Date().toISOString() } : null);
+      } else {
+        toast.error(res.message || 'Failed to lock account');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to lock account');
+    } finally {
+      setUnlockLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
   }
@@ -299,7 +338,7 @@ export const EmployeeDetailsPage: React.FC = () => {
       <div className="relative bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden mt-4">
         {/* Cover Photo / Banner */}
         {/* Header Background Banner */}
-        <div className="h-36 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative">
+        <div className={`h-36 ${employee.isLocked ? 'bg-gradient-to-r from-rose-700 via-red-600 to-amber-600' : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'} relative`}>
           <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-white/20 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-indigo-900/20 blur-3xl"></div>
@@ -307,7 +346,7 @@ export const EmployeeDetailsPage: React.FC = () => {
         
         <div className="px-8 pb-8 flex flex-col md:flex-row items-center md:items-end justify-between gap-6 -mt-16 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-28 h-28 sm:w-32 sm:h-32 bg-white text-indigo-600 rounded-full flex items-center justify-center text-3xl sm:text-4xl font-black shadow-2xl border-4 border-white ring-4 ring-indigo-500/10 shrink-0">
+            <div className={`w-28 h-28 sm:w-32 sm:h-32 bg-white ${employee.isLocked ? 'text-rose-600' : 'text-indigo-600'} rounded-full flex items-center justify-center text-3xl sm:text-4xl font-black shadow-2xl border-4 border-white ring-4 ${employee.isLocked ? 'ring-rose-500/20' : 'ring-indigo-500/10'} shrink-0`}>
               {getInitials(employee.name)}
             </div>
             <div className="text-center md:text-left pt-3 md:pt-16">
@@ -315,9 +354,15 @@ export const EmployeeDetailsPage: React.FC = () => {
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                   {employee.name}
                 </h1>
-                <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold rounded-full uppercase tracking-wider">
-                  Active Profile
-                </span>
+                {employee.isLocked ? (
+                  <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-extrabold rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <Lock size={11} className="text-rose-600" /> Locked Account
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <CheckCircle2 size={11} className="text-emerald-500" /> Active Profile
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs font-semibold">
@@ -334,7 +379,32 @@ export const EmployeeDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden md:flex gap-3 items-center mb-2">
+          <div className="flex gap-3 items-center mb-2">
+            {isSuperAdmin && (
+              employee.isLocked ? (
+                <button 
+                  onClick={handleUnlockAccount}
+                  disabled={unlockLoading}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  {unlockLoading ? (
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Unlock size={15} />
+                  )}
+                  Unlock Account
+                </button>
+              ) : (
+                <button 
+                  onClick={handleLockAccount}
+                  disabled={unlockLoading}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                  title="Lock account"
+                >
+                  <Lock size={14} /> Lock Account
+                </button>
+              )
+            )}
             {employee.id === user?.id && (
               <button 
                 onClick={() => setActiveTab('settings')}
@@ -346,6 +416,36 @@ export const EmployeeDetailsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Lockout Alert Banner */}
+      {employee.isLocked && (
+        <div className="bg-rose-50 border-2 border-rose-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-rose-600 text-white rounded-xl shadow-xs">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <h4 className="text-sm font-extrabold text-rose-950 flex items-center gap-2">
+                Account Currently Locked Out
+              </h4>
+              <p className="text-xs text-rose-700 mt-0.5">
+                This member is prevented from logging into EMS. {employee.failedLoginAttempts ? `Triggered after ${employee.failedLoginAttempts} failed password attempts.` : 'Restricted by administrative security hold.'}
+              </p>
+            </div>
+          </div>
+          {isSuperAdmin && (
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={unlockLoading}
+              onClick={handleUnlockAccount}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 shadow-xs"
+            >
+              <Unlock size={14} className="mr-1" /> Unlock Member Now
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex items-center border-b border-slate-200/80 pt-2 px-4 gap-2 overflow-x-auto">

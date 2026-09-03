@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { 
   Users, Briefcase, Activity, 
   TrendingUp, TrendingDown, Clock, 
-  Zap, Globe
+  Zap, Globe, Lock, Unlock, ShieldAlert, CheckCircle2, UserCheck
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   BarChart, Bar, Cell
 } from 'recharts';
-import { getDashboardData } from '../../api/admin.api';
+import { getDashboardData, unlockUser } from '../../api/admin.api';
+import { toast } from '../../utils/toast';
+import { Button } from '../../components/ui/Button';
+import { Link } from 'react-router-dom';
 
 // Static UI demonstration data (activityData is kept static since no backend table supports request vs login timeseries yet)
 const activityData = [
@@ -24,6 +27,8 @@ const activityData = [
 export const SuperAdminDashboardPage: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [lockedUsers, setLockedUsers] = useState<any[]>([]);
+  const [unlockingId, setUnlockingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -31,6 +36,9 @@ export const SuperAdminDashboardPage: React.FC = () => {
         const res = await getDashboardData();
         if (res.success) {
           setData(res.data);
+          if (res.data?.lockedUsers) {
+            setLockedUsers(res.data.lockedUsers);
+          }
         }
       } catch (e) {
         console.error(e);
@@ -40,6 +48,23 @@ export const SuperAdminDashboardPage: React.FC = () => {
     };
     fetchDashboard();
   }, []);
+
+  const handleUnlockUser = async (userId: string, userName: string) => {
+    try {
+      setUnlockingId(userId);
+      const res = await unlockUser(userId);
+      if (res.success) {
+        toast.success(`Account unlocked: ${userName}`);
+        setLockedUsers(prev => prev.filter(u => u.id !== userId));
+      } else {
+        toast.error(res.message || 'Failed to unlock user');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Error unlocking user');
+    } finally {
+      setUnlockingId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -67,10 +92,21 @@ export const SuperAdminDashboardPage: React.FC = () => {
           </h2>
           <p className="text-gray-500 mt-2 font-medium flex items-center gap-2">
             <Globe className="w-4 h-4 text-indigo-400" />
-            System overview and key metrics
+            System overview and access governance
           </p>
         </div>
         <div className="flex items-center gap-3">
+          {lockedUsers.length > 0 ? (
+            <span className="flex items-center gap-2 text-xs font-bold bg-rose-50 text-rose-700 px-3 py-1.5 rounded-full border border-rose-200 shadow-sm animate-pulse">
+              <ShieldAlert className="w-4 h-4 text-rose-500" />
+              {lockedUsers.length} Locked {lockedUsers.length === 1 ? 'Account' : 'Accounts'}
+            </span>
+          ) : (
+            <span className="flex items-center gap-2 text-xs font-medium bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              All Accounts Secure
+            </span>
+          )}
           <span className="flex items-center gap-2 text-sm font-medium bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -82,7 +118,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
       </div>
 
       {/* Top Stats Cards - Glassmorphism */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
         <StatCard 
           title="Total Users" 
           value={data?.totalUsers || 0} 
@@ -111,6 +147,15 @@ export const SuperAdminDashboardPage: React.FC = () => {
           shadowColor="shadow-orange-500/20"
         />
         <StatCard 
+          title="Locked Accounts" 
+          value={lockedUsers.length} 
+          trend={lockedUsers.length > 0 ? "Action Required" : "Zero Lockouts"} 
+          trendUp={lockedUsers.length === 0} 
+          icon={<Lock className="w-6 h-6 text-white" />} 
+          gradient={lockedUsers.length > 0 ? "from-rose-500 to-red-600" : "from-slate-500 to-slate-600"}
+          shadowColor={lockedUsers.length > 0 ? "shadow-rose-500/20" : "shadow-slate-500/10"}
+        />
+        <StatCard 
           title="System Health" 
           value={data?.systemHealth || "99.9%"} 
           trend="+0.1%" 
@@ -120,6 +165,77 @@ export const SuperAdminDashboardPage: React.FC = () => {
           shadowColor="shadow-emerald-500/20"
         />
       </div>
+
+      {/* Locked Accounts Quick Action Banner / Panel */}
+      {lockedUsers.length > 0 && (
+        <div className="bg-gradient-to-r from-rose-500/10 via-red-500/5 to-rose-500/10 border-2 border-rose-200/80 rounded-2xl p-6 shadow-xl backdrop-blur-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-rose-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-rose-600 text-white rounded-xl shadow-md">
+                <ShieldAlert size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-rose-950 flex items-center gap-2">
+                  Locked Member Accounts ({lockedUsers.length})
+                </h3>
+                <p className="text-xs text-rose-700 font-medium">
+                  These accounts have been locked due to exceeding maximum failed login attempts (5) or administrator policy.
+                </p>
+              </div>
+            </div>
+            <Link to="/admin/users" className="text-xs font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 self-start sm:self-auto">
+              View all in Employee Directory →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {lockedUsers.map((user) => (
+              <div key={user.id} className="bg-white/95 rounded-xl border border-rose-200 p-4 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-slate-900 text-sm truncate">{user.name}</p>
+                    <p className="text-xs text-slate-500 font-mono truncate">{user.email}</p>
+                    <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-600">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 font-bold text-slate-700">{user.department}</span>
+                      <span className="text-rose-600 font-semibold font-mono">#{user.empId || user.id}</span>
+                    </div>
+                  </div>
+                  <span className="p-2 bg-rose-100 text-rose-700 rounded-lg shrink-0">
+                    <Lock size={16} />
+                  </span>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    {user.failedLoginAttempts ? `${user.failedLoginAttempts} failed tries` : 'Policy locked'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Link to={`/employees/${user.id}`}>
+                      <Button variant="outline" size="sm" className="h-8 text-xs px-2.5">
+                        <UserCheck size={13} className="mr-1" /> Profile
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      disabled={unlockingId === user.id}
+                      onClick={() => handleUnlockUser(user.id, user.name)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 text-xs px-3 shadow-xs"
+                    >
+                      {unlockingId === user.id ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin mr-1" />
+                      ) : (
+                        <Unlock size={13} className="mr-1" />
+                      )}
+                      Unlock Member
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart Area */}

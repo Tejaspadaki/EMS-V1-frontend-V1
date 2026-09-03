@@ -10,22 +10,42 @@ export interface LatestReleaseInfo {
   version: string;
   releaseNotes?: string;
   htmlUrl: string;
-  windowsInstallerUrl: string | null;
-  linuxAppImageUrl: string | null;
+  windowsInstallerUrl: string;
+  linuxAppImageUrl: string;
   assets: ReleaseAsset[];
 }
 
 const GITHUB_OWNER = 'Tejaspadaki';
 const GITHUB_REPO = 'EMS-V1-frontend-V1';
-const DEFAULT_VERSION = '1.16.0';
+export const CURRENT_VERSION = '1.19.2';
 
-// Use the backend API to avoid GitHub's strict client-side rate limits
-const RELEASES_API_URL = `https://ems-backend.yuktiyantra.com/api/updates/latest`;
+export const getBackendBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+    return envUrl.replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:5000';
+  }
+  return 'https://ems-backend.yuktiyantra.com';
+};
+
 export const RELEASES_PAGE_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
 
-// Point to the backend redirect endpoints which dynamically resolve the latest asset URL
-export const DIRECT_WINDOWS_DOWNLOAD_URL = `https://ems-backend.yuktiyantra.com/updates/download/windows`;
-export const DIRECT_LINUX_DOWNLOAD_URL = `https://ems-backend.yuktiyantra.com/updates/download/linux`;
+export const getDirectWindowsDownloadUrl = (version?: string): string => {
+  const base = getBackendBaseUrl();
+  const ver = version || CURRENT_VERSION;
+  return `${base}/updates/download/windows?version=${ver}`;
+};
+
+export const getDirectLinuxDownloadUrl = (version?: string): string => {
+  const base = getBackendBaseUrl();
+  const ver = version || CURRENT_VERSION;
+  return `${base}/updates/download/linux?version=${ver}`;
+};
+
+export const DIRECT_WINDOWS_DOWNLOAD_URL = getDirectWindowsDownloadUrl();
+export const DIRECT_LINUX_DOWNLOAD_URL = getDirectLinuxDownloadUrl();
 
 export type OperatingSystem = 'windows' | 'linux' | 'other';
 
@@ -43,53 +63,66 @@ export function detectOS(): OperatingSystem {
 /**
  * Fetch the latest GitHub Release metadata dynamically via the backend.
  */
-export async function fetchLatestRelease(): Promise<LatestReleaseInfo> {
+export async function fetchLatestRelease(version?: string): Promise<LatestReleaseInfo> {
+  const base = getBackendBaseUrl();
+  const targetVer = version || CURRENT_VERSION;
+  const apiUrl = `${base}/api/updates/latest${version ? `?version=${version}` : ''}`;
+
   try {
-    const response = await fetch(RELEASES_API_URL);
+    const response = await fetch(apiUrl);
 
     if (!response.ok) {
       console.warn(`[Update API] Backend returned status ${response.status}`);
       return {
-        hasRelease: false,
-        tagName: `v${DEFAULT_VERSION}`,
-        version: DEFAULT_VERSION,
-        htmlUrl: RELEASES_PAGE_URL,
-        windowsInstallerUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
-        linuxAppImageUrl: DIRECT_LINUX_DOWNLOAD_URL,
+        hasRelease: true,
+        tagName: `v${targetVer}`,
+        version: targetVer,
+        htmlUrl: `${RELEASES_PAGE_URL}/tag/v${targetVer}`,
+        windowsInstallerUrl: getDirectWindowsDownloadUrl(targetVer),
+        linuxAppImageUrl: getDirectLinuxDownloadUrl(targetVer),
         assets: [],
       };
     }
 
     const data = await response.json();
     
-    // The backend returns: { success: true, version: "1.16.0", windows: "url", linux: "url", releaseUrl: "url" }
     if (!data.success) {
       throw new Error("Backend reported failure fetching release");
     }
 
-    const version = data.version || DEFAULT_VERSION;
-    const tagName = `v${version}`;
+    const resolvedVersion = data.version || targetVer;
+    const tagName = data.tagName || `v${resolvedVersion}`;
+
+    // Ensure URLs are absolute
+    const winUrl = data.windows?.startsWith('http') 
+      ? data.windows 
+      : `${base}${data.windows || `/updates/download/windows?version=${resolvedVersion}`}`;
+      
+    const linuxUrl = data.linux?.startsWith('http') 
+      ? data.linux 
+      : `${base}${data.linux || `/updates/download/linux?version=${resolvedVersion}`}`;
 
     return {
       hasRelease: true,
       tagName,
-      version,
-      releaseNotes: 'Update available via EMS Backend',
-      htmlUrl: data.releaseUrl || RELEASES_PAGE_URL,
-      windowsInstallerUrl: data.windows || DIRECT_WINDOWS_DOWNLOAD_URL,
-      linuxAppImageUrl: data.linux || DIRECT_LINUX_DOWNLOAD_URL,
-      assets: [], // We don't need raw assets anymore since backend handles it
+      version: resolvedVersion,
+      releaseNotes: data.releaseNotes || `Novynth Workflow Desktop App v${resolvedVersion}`,
+      htmlUrl: data.releaseUrl || `${RELEASES_PAGE_URL}/tag/v${resolvedVersion}`,
+      windowsInstallerUrl: winUrl,
+      linuxAppImageUrl: linuxUrl,
+      assets: [],
     };
   } catch (error) {
     console.warn('[Update API] Failed to fetch release metadata from backend:', error);
     return {
-      hasRelease: false,
-      tagName: `v${DEFAULT_VERSION}`,
-      version: DEFAULT_VERSION,
-      htmlUrl: RELEASES_PAGE_URL,
-      windowsInstallerUrl: DIRECT_WINDOWS_DOWNLOAD_URL,
-      linuxAppImageUrl: DIRECT_LINUX_DOWNLOAD_URL,
+      hasRelease: true,
+      tagName: `v${targetVer}`,
+      version: targetVer,
+      htmlUrl: `${RELEASES_PAGE_URL}/tag/v${targetVer}`,
+      windowsInstallerUrl: getDirectWindowsDownloadUrl(targetVer),
+      linuxAppImageUrl: getDirectLinuxDownloadUrl(targetVer),
       assets: [],
     };
   }
 }
+
